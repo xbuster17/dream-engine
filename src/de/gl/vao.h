@@ -6,8 +6,8 @@
 #include "../common/common.h"
 
 // vertex format string
-// made from a type character(s) (f, c, s, i, uc, us, ui),
-// f:float, c:char, s:short, i:int, u:unsigned.
+// made from a type character(s) ie: f, c, s, i, uc, us, ui, unc, usn, iun
+// f:float, c:char, s:short, i:int, u:unsigned, n:normalized.
 // followed by a dimension character ('1' to '4')
 // and a secuence of characters for attribute name
 // all white space is culled.
