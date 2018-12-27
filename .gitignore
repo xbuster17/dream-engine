@@ -1,7 +1,10 @@
+# compiled
 *.o
 *.wino
 
+# executables
 /de
 *.exe
 
+# android
 /de_android/
