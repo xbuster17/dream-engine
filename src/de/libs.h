@@ -26,11 +26,11 @@ typedef unsigned short ushort;
 	#include <GLES/gl.h>
 	#include <GLES/glext.h>
 	#include <android/log.h>
-	#include "../../android/jni/SDL2/include/SDL.h"
-	#include "../../android/jni/SDL2_image/SDL_image.h"
-	#include "../../android/jni/SDL2_mixer/SDL_mixer.h"
-	#include "../../android/jni/SDL2_net/SDL_net.h"
-	#include "../../android/jni/SDL2_ttf/SDL_ttf.h"
+	#include "../../de_android/jni/SDL2/include/SDL.h"
+	#include "../../de_android/jni/SDL2_image/SDL_image.h"
+	#include "../../de_android/jni/SDL2_mixer/SDL_mixer.h"
+	#include "../../de_android/jni/SDL2_net/SDL_net.h"
+	#include "../../de_android/jni/SDL2_ttf/SDL_ttf.h"
 
 	/* vao extension */
 	#include "android/glext.h"

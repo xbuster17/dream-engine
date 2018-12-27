@@ -157,7 +157,7 @@ win-clean:
 #______________________________________________________________________________
 droid:
 	$(call color_red, "-link assets folder:")
-	ln -f -s -r ./assets ./android/
+	ln -f -s -r ./assets ./de_android/
 	$(call color_red, "-write file android makefile $(ANDROID_MK_PATH)/makefile :")
 	echo "#auto generated from root makefile ( $(shell pwd) )" > $(ANDROID_MK_PATH)
 	@printf $(ANDROID_MK_PREFIX) >> $(ANDROID_MK_PATH)
@@ -167,12 +167,12 @@ droid:
 	$(call color_red, "-clear makefile's timestamp so it doesnt recompile everything:")
 	touch -d "1970-01-01 00:00:00.000000000 +0000" $(ANDROID_MK_PATH)
 
-	cd android && make
+	cd de_android && make
 
 	$(call color_red, "android makefile done")
 
 
-ANDROID_MK_PATH = ./android/jni/src/Android.mk
+ANDROID_MK_PATH = ./de_android/jni/src/Android.mk
 
 ANDROID_MK_SOURCES = $(addprefix ../../../,$(GAME_SRC) $(MAIN) $(ENGINE_SRC))
 
