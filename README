@@ -1,0 +1,68 @@
+dream engine
+
+released under the MIT license (read LICENSE)
+
+
+modules:
+
+	window: sdl initialization, glcontext setup
+	input:
+	vao: Vertex Array Object, glVertexAttribPointer (vap), glVertexBufferObject (vbo)
+	vertex format parser handles <type> <dim> [name] [',' or ';'] '\0'
+	up to 16 which is gl standard,
+	type is 'f', 'i', 's' or 'c'. with optionally 'u' or 'n' at any point
+	these stand for the first letter in float, int, short, char, unsigned, normalize
+	normalize tells gl to map integers to [1,-1], according to their type
+
+
+
+
+
+
+
+quirks:
+sdl defines 'main' and we cant use it inside QUOTE() for shaders, main is made undefined in libs.h
+
+input & main thread:
+DE_GAME_LOOP calls SDL_PumpEvents which can only be called from the main thread
+without pumping events the engine cant see them
+SDL_PollEvents calls pump too
+keyboard events with repeat will be ignored on keyboard state
+mouse relative state gets reset each call to dinput_update
+
+opengl:
+the attribute parser is weak so dont use names that appear on the header or anywhere before the actual variable name
+ie dont use attribute def; since it will be found on "#define ..." segment;
+either this or enforce " name;" to minimize the problem //todo
+
+glsl:
+only consts can be used in a global initializer, glsl v100 error, some androids
+every float number in glsl must have an explicit decimal
+if you dont use a variable in glsl it gets optimized away, if this is an attribute or uniform, it will change the index and cause graphic bugs, note that it is not enough to assign a variable to an unused variable.
+
+
+
+GL_UNSIGNED_INT and GL_OES_element_index_uint extension:
+even tho this should work on gles2 the only device i have to try it gives GL_INVALID_ENUM
+as if the extension wasn't aviable despite it being in glGetString(GL_EXTENSIONS)
+so element buffer object is made with shorts for the moment ...
+
+
+
+makefile:
+it doesnt detect included headers so it will not update every file and it's buggy
+the simplest way to fix it is `make rm && make`
+the android makefile handles this correctly
+
+
+
+
+
+
+
+
+
+TODO
+handle sdl event android background, text composition, dropfile, mouse wheel
+
+fix wine mousegrab slowdown

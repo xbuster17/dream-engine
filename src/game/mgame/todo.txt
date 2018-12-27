@@ -1,0 +1,50 @@
+mgame todo
+key mechanics:
+	save states, adds to total timer
+
+cam:
+make camera hint player where to go/what to do? (auto camera)
+joy must control camera non linearly
+settings for mouse sens
+multithread hmap function caching for aproximation
+
+
+//	ent* e = ent_add(ents*, &DMK_joe)
+//
+//	scn_new(scn*)
+//	scn_free(scn*)
+//	scn_clear(scn*)
+//	scn_state* scn_save(scn*);
+//	typedef struct scn{????????} scn;
+
+
+
+// player auto shooting
+if length(ppos - epos) < attack_rad:
+	add_bullet(&normal)->{pos=ppos, vel=norm(ppos-epos), acc=vel}
+
+// add damage calculations
+
+// enemy shoot pattern 3d sphere every x frames
+
+// limit number of jumps
+
+// respawn enemy when killed
+
+// figure out terrain color
+
+// __COUNTER__ is a gcc and VC++ and clang that gets incremented each time it's parsed - done
+
+
+
+// points, sugar or brag or powerups
+// simple triangles (bullets to pick up (and power upgrades?).
+//	variable shapes (small deformation), colored, normals (shiny!),
+//	single circular buffer of ~10k elems (benchmark),
+//	vertex points set to zero (or far below player) when picked (trying to skip fragment shd)
+//	rotate randomly (?cpu heavy)
+// attracts points in a sphere around player when jumping.
+//	rotates y axis while being attracted
+// spawn powerup if picked up many points in a short period ~1sec.
+
+
