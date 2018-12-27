@@ -4,7 +4,6 @@
 #include "../libs.h"
 #include "../conf.h"
 #include "../common/common.h"
-#include "shdl.h"
 
 #define DSHD_QUOTEV(x) DE_SHD_HEADERV QUOTE(x)
 #define DSHD_QUOTEF(x) DE_SHD_HEADERF QUOTE(x)
