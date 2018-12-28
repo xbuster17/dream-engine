@@ -4,7 +4,7 @@
 
 struct game game;
 
-
+// float* sndchunk;
 // #include "bullets.h"
 void mgame_init(void);
 void mgame_quit(void);
@@ -13,6 +13,7 @@ void mgame_quit(void);
 
 void mgame_quit(void){
 	// free(game.enemy_bullets);
+	// free(sndchunk);
 	// free(game.player_bullets);
 }
 
@@ -28,11 +29,9 @@ bullets* extra[5];
 
 float hfunc(float,float);
 
-//abby test
-dvao* abbyvao;
-dtex* abbytex;
-dmesh* abbymesh = NULL;
-float pabbyroty=0;
+
+
+
 
 void mgame_init(void){
 	bullets_init( num_enemy_bullets );
@@ -47,33 +46,43 @@ void mgame_init(void){
 	game.hmap = hmap_new(hmap_res,hmap_res, hfunc, HMAP_DYNAMIC | HMAP_FIXED);
 	// game.hmap = hmap_new(hmap_res,hmap_res, hfunc, HMAP_DYNAMIC);
 
-//abby test
-	// abbyvao = dmesh_open_obj( DE_ASSET("mesh/abby.obj") );
-	// abbyvao = dmesh_open_obj( DE_ASSET("mesh/flat.obj") );
-	// abbyvao = dmesh_open_obj( DE_ASSET("mesh/abbynaked.obj") );
-	// abbyvao = dmesh_open_obj( DE_ASSET("mesh/xtiby.obj") );
-	// abbytex = dtex_open( DE_ASSET("abby_sheet.png"));
-	// abbytex = dtex_open( DE_ASSET("mesh/abby_halfsheet.png"));
-	// abbytex = dtex_open( DE_ASSET("mesh/xtiby.png"));
-	// abbytex = dtex_open( DE_ASSET("abby_ldsheet.png"));
-	// abbymesh = dmesh_open(DE_ASSET("mesh/abby.obj"), DE_ASSET("abby_sheet.png"));
-	// dmesh_free(abbymesh);
-	// abbymesh = dmesh_new(abbyvao, abbytex);
-	// if(abbymesh) abbymesh->tex = dtex_ref(abbytex);
-
-if (abbymesh == NULL) DE_LOG("mesh is null");
-else DE_LOG("mesh loaded");
-
-// if (abbyvao == NULL) DE_LOG("abby is null");
-// struct mesh_basic{
-// 	m4f M,N,mvp
-// 	dvao* vao;
-// } mesh_basic;
-
-// 	dshd* mesh_shd = dshd_new(mesh_vshdsrc, mesh_fshdsrc);
 
 // 	dshd_unif(mesh_shd, "M", );
 
+
+// dsnd* testsnd = dsnd_open(DE_ASSET("sfx1.ogg"));
+// dsnd_play(testsnd);
+
+// int smplen = 44100;
+int smplen = De.sample_rate;
+// float sndchunk[ smplen * 2 ];
+// float* sndchunk = alloca(smplen * 2 * sizeof(float));
+float* sndchunk = malloc(smplen * 2 * sizeof(float));
+
+for (int i = 0; i < smplen*2; ++i){
+	sndchunk[i] = 0.0;
+}
+
+for (int i = 0; i < smplen*2; ++i){
+	float c = (float)i;
+	c /= De.sample_rate;
+	c = PI*c;
+	float r = sin(440*c);
+	float m = sin(2*c);
+	r = r*m;
+	sndchunk[i] = r;
+	i++;
+	sndchunk[i] = r;
+}
+
+dsnd* testpsnd = dsnd_new(sndchunk, smplen * 2 * sizeof(float));
+// dsnd_playf(testpsnd, 0, 100);
+// dsnd_playf(testpsnd, -1, 300);
+// int chan = ;
+dsnd_fade(dsnd_playl(testpsnd, -1), 10000);
+// dsnd_play(testpsnd);
+// dsnd_free(testpsnd);
+// free(sndchunk);
 }
 
 

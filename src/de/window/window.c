@@ -2,7 +2,7 @@
 #include "../de_struct.h"
 #include "../android/glext.h"
 
-#define DE_WINDOW_DEFAULT_FLAGS SDL_WINDOW_BORDERLESS
+#define DE_WINDOW_DEFAULT_FLAGS SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE
 // SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
 
 int dwindow_init(int x, int y, int flags){

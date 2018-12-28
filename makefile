@@ -155,21 +155,24 @@ win-clean:
 #______________________________________________________________________________
 # android
 #______________________________________________________________________________
-droid:
-	$(call color_red, "-link assets folder:")
-	ln -f -s -r ./assets ./de_android/
-	$(call color_red, "-write file android makefile $(ANDROID_MK_PATH)/makefile :")
-	echo "#auto generated from root makefile ( $(shell pwd) )" > $(ANDROID_MK_PATH)
+android:
+# link assets folder:
+	$(call color_gold,"ln -f -s -r ./assets ./de_android/")
+	@ln -f -s -r ./assets ./de_android/
+
+	$(call color_gold,"writing android makefile $(ANDROID_MK_PATH):")
+	@echo "#auto generated from root makefile ( $(shell pwd) )" > $(ANDROID_MK_PATH)
 	@printf $(ANDROID_MK_PREFIX) >> $(ANDROID_MK_PATH)
 	@echo LOCAL_SRC_FILES := $(ANDROID_MK_SOURCES) >> $(ANDROID_MK_PATH)
 	@printf $(ANDROID_MK_SUFFIX) >> $(ANDROID_MK_PATH)
 
-	$(call color_red, "-clear makefile's timestamp so it doesnt recompile everything:")
-	touch -d "1970-01-01 00:00:00.000000000 +0000" $(ANDROID_MK_PATH)
+# clear makefile's timestamp so it doesnt recompile everything:
+	$(call color_gold,"touch -d \"1970-01-01 00:00:00.000000000 +0000\"" $(ANDROID_MK_PATH) )
+	@touch -d "1970-01-01 00:00:00.000000000 +0000" $(ANDROID_MK_PATH)
 
 	cd de_android && make
 
-	$(call color_red, "android makefile done")
+	$(call color_gold,"android makefile finished")
 
 
 ANDROID_MK_PATH = ./de_android/jni/src/Android.mk

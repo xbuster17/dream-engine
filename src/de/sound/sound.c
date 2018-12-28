@@ -1,10 +1,12 @@
 #include "sound.h"
 #include "../common/common.h"
+#include "../de_struct.h"
 
-static int init_mix_channels = 1024;
-static int init_sample_rate = 44100; // 48000 cracks on android
-// MIX_DEFAULT_FREQUENCY is 22050
-static int init_bufsize = 2048;
+static int init_mix_channels = 32;
+
+static int init_sample_rate = 44100; // MIX_DEFAULT_FREQUENCY is 22050
+// static int init_bufsize = 2048;
+static int init_bufsize = 1024;
 static int init_channels = 2;
 static Uint16 init_format = AUDIO_F32SYS;
 // AUDIO_S16SYS, AUDIO_S8, AUDIO_U16SYS, AUDIO_S32SYS ... Signed or Unsigned
@@ -55,9 +57,17 @@ int dsnd_init(void){
 		DE_LOGE("%s\n", Mix_GetError());
 	}
 
+
 	Mix_AllocateChannels(init_mix_channels);
+
+	De.sample_rate = init_sample_rate;
+	De.audio_channels = init_channels;
+	De.audio_buffer_size = init_bufsize;
+	De.audio_format = init_format;
+
 	return 0;
 }
+
 
 
 
@@ -72,6 +82,7 @@ dsnd* dsnd_open(char* filename){ if(!filename) return NULL;
 }
 
 
+
 void dsnd_free(dsnd* snd){ if(!snd) return;
 	Mix_FreeChunk(snd);
 }
@@ -79,29 +90,53 @@ void dsnd_free(dsnd* snd){ if(!snd) return;
 
 
 int dsnd_play(dsnd* snd){ if(!snd) return -1;
-	int chan = Mix_PlayChannel(-1, snd, 1);
+	int chan = Mix_PlayChannel(-1, snd, 0);
 	if(chan == -1){
+		chan = -2;
 		DE_LOG("%s\n", Mix_GetError());
 	}
 	return chan;
 }
+
+
 
 int dsnd_playl(dsnd* snd, int loops){ if(!snd) return -1;
 	int chan = Mix_PlayChannel(-1, snd, loops);
 	if(chan == -1){
+		chan = -2;
 		DE_LOG("%s\n", Mix_GetError());
 	}
 	return chan;
 }
 
 
+
+int dsnd_playf(dsnd* snd, int loops, int fade){ if(!snd) return -1;
+	int chan = Mix_FadeInChannel(-1, snd, loops, fade);
+	if(chan == -1){
+		chan = -2;
+		DE_LOG("%s\n", Mix_GetError());
+	}
+	return chan;
+}
+
+
+
+dsnd* dsnd_new(void* data, Uint32 len){ if(!data) return NULL;
+	return Mix_QuickLoad_RAW(data, len);
+}
+
+
+
+void dsnd_fade(int channel, int ms){ // -1 to fade out all channels
+	Mix_FadeOutChannel(channel, ms);
+}
 
 
 
 
 
 // music
-
 dmus* dmus_open(char* filename){ if(!filename) return NULL;
 	dmus* mus = Mix_LoadMUS(filename);
 	if(!mus){

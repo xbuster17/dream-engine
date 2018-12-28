@@ -10,8 +10,9 @@
 
 //shader tmp
 // #ifdef ANDROID /*opengl es*/
-#define DE_SHD_HEADERV "#version 100\n"
-#define DE_SHD_HEADERF "#version 100\n""precision highp float;\n"
+#define DE_SHD_HEADERV "#version 100\n""precision highp float;\n"
+#define DE_SHD_HEADERF DE_SHD_HEADERV
+// #define DE_SHD_HEADERF "#version 100\n""precision highp float;\n"
 // #else
 // #define DE_SHD_HEADERV "#version 120\n"
 // #define DE_SHD_HEADERF "#version 120\n"

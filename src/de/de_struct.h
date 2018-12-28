@@ -103,22 +103,16 @@ extern struct De{
 		m4f proj;
 		m4f vp; // view-projection
 	} cam;
-	// dcam_update() calculate proj and view matrices based on the other values
 
-	// struct dcam* cam; // todo
-	// struct dcam* camdef; // todo
-	// struct dcam* camprev; // todo
-	// void (*cam_update)(void);
-
-	// m4f view; // put in cam
-	// m4f proj;//
-	// float fov;
-	// float near_clip;
-	// float far_clip;
+//sound
+	int audio_channels;
+	int sample_rate;
+	int audio_buffer_size;
+	Uint16 audio_format;
+// AUDIO_S16SYS, AUDIO_S8, AUDIO_U16SYS, AUDIO_S32SYS ... Signed or Unsigned
+// LSB or MSB can be used instead of SYS for little or big endian byte order
 
 
-	// void (*update)(void);
-	// void (*tick)(float ms);
 } De;
 
 

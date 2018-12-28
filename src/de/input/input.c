@@ -19,10 +19,10 @@ void dinput_init(void){
 	SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
 
 /* android events to exit on background (todo) */
-	SDL_EventState(SDL_APP_WILLENTERBACKGROUND, SDL_ENABLE);
-	SDL_EventState(SDL_APP_DIDENTERBACKGROUND, SDL_ENABLE);
-	SDL_EventState(SDL_APP_DIDENTERFOREGROUND, SDL_ENABLE);
-	SDL_EventState(SDL_APP_WILLENTERFOREGROUND, SDL_ENABLE);
+	// SDL_EventState(SDL_APP_WILLENTERBACKGROUND, SDL_ENABLE);
+	// SDL_EventState(SDL_APP_DIDENTERBACKGROUND, SDL_ENABLE);
+	// SDL_EventState(SDL_APP_DIDENTERFOREGROUND, SDL_ENABLE);
+	// SDL_EventState(SDL_APP_WILLENTERFOREGROUND, SDL_ENABLE);
 
 	SDL_AddEventWatch(dinput_watcher, NULL);
 	// SDL_SetEventFilter(dinput_watcher, NULL);
@@ -44,13 +44,13 @@ void dinput_quit(void){
 void dinput_update(void){
 	De.mouse.rel *= 0;
 
-	/* hack to handle android device rotations */
-	#if ANDROID
-		int x,y;
-		SDL_GetWindowSize(De.win, &x, &y);
-		// dviewport(x, y);
-		dwindow_resized(x,y);
-	#endif
+	/* hack to handle android device rotations no longer needed*/
+	// #if ANDROID
+	// 	int x,y;
+	// 	SDL_GetWindowSize(De.win, &x, &y);
+	// 	// dviewport(x, y);
+	// 	dwindow_resized(x,y);
+	// #endif
 
 	SDL_PumpEvents();
 

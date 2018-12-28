@@ -4,9 +4,7 @@ released under the MIT license (read LICENSE)
 
 
 modules:
-
 	window: sdl initialization, glcontext setup
-	input:
 	vao: Vertex Array Object, glVertexAttribPointer (vap), glVertexBufferObject (vbo)
 	vertex format parser handles <type> <dim> [name] [',' or ';'] '\0'
 	up to 16 which is gl standard,
@@ -40,13 +38,11 @@ only consts can be used in a global initializer, glsl v100 error, some androids
 every float number in glsl must have an explicit decimal
 if you dont use a variable in glsl it gets optimized away, if this is an attribute or uniform, it will change the index and cause graphic bugs, note that it is not enough to assign a variable to an unused variable.
 
-
-
+gl ibo ext:
 GL_UNSIGNED_INT and GL_OES_element_index_uint extension:
 even tho this should work on gles2 the only device i have to try it gives GL_INVALID_ENUM
 as if the extension wasn't aviable despite it being in glGetString(GL_EXTENSIONS)
 so element buffer object is made with shorts for the moment ...
-
 
 
 makefile:
@@ -55,11 +51,16 @@ the simplest way to fix it is `make rm && make`
 the android makefile handles this correctly
 
 
+audio:
+when using sdl mixer don't call the following sdl functions:
+SDL_OpenAudio, SDL_CloseAudio, SDL_PauseAudio, SDL_LockAudio, SDL_UnlockAudio.
+use Mix_Pause(-1) and Mix_PauseMusic or Mix_Resume(-1) and Mix_ResumeMusic instead.
+it is also a BAD idea to call SDL_mixed and SDL audio functions from a callback.
+Callbacks include Effects functions and other SDL_mixer audio hooks
 
 
-
-
-
+android:
+SDL_WINDOW_RESIZABLE required for apps with both portrait and landscape orientations
 
 
 TODO

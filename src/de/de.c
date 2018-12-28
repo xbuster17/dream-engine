@@ -20,9 +20,9 @@ int de_init(int x, int y, int flags){
 
 	dcam_reset();
 
-	// if(dsnd_init()){
-	// 	exit(0);
-	// }
+	if(dsnd_init()){
+		exit(0);
+	}
 
 	// SDLNet_Init();
 
@@ -34,7 +34,7 @@ int de_init(int x, int y, int flags){
 void de_quit(void){
 	dinput_quit();
 	// SDLNet_Quit();
-	// dsnd_quit();
+	dsnd_quit();
 	dgl_quit();
 	dwindow_quit();
 }
