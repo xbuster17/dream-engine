@@ -137,14 +137,23 @@ bullets* bullets_new(uint count){
 	bs->vao = dvao_newr("f2p, f2tc; f4ctr; uc4col0; uc4col1", verts, count*4, GL_TRIANGLE_STRIP);
 
 #if defined ANDROID
-	bs->shadow_map = dfbo_new(1024,1024);
+	bs->shadow_map = dfbo_new(512,512);
 #else
 	bs->shadow_map = dfbo_new(1024,1024);
-	// bs->shadow_map = dfbo_new(4,4);
 #endif
 
 	bs->cursor = 0;
 	return bs;
+}
+
+
+
+void bullets_free(bullets* bs){ if(!bs) return;
+	dfbo_free(bs->shadow_map);
+	dvao_free(bs->vao);
+	free(bs->b);
+	free(bs);
+
 }
 
 

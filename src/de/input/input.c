@@ -6,6 +6,7 @@ int dinput_watcher(void* udata, SDL_Event* event);
 
 void dinput_init(void){
 	SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
+
 	De.fingers_down = 0;
 	De.finger_click = 0;
 	De.finger_click_time = 160;
@@ -25,7 +26,6 @@ void dinput_init(void){
 	// SDL_EventState(SDL_APP_WILLENTERFOREGROUND, SDL_ENABLE);
 
 	SDL_AddEventWatch(dinput_watcher, NULL);
-	// SDL_SetEventFilter(dinput_watcher, NULL);
 }
 
 
@@ -44,16 +44,7 @@ void dinput_quit(void){
 void dinput_update(void){
 	De.mouse.rel *= 0;
 
-	/* hack to handle android device rotations no longer needed*/
-	// #if ANDROID
-	// 	int x,y;
-	// 	SDL_GetWindowSize(De.win, &x, &y);
-	// 	// dviewport(x, y);
-	// 	dwindow_resized(x,y);
-	// #endif
-
 	SDL_PumpEvents();
-
 }
 
 
@@ -115,8 +106,6 @@ int dinput_watcher(void* udata, SDL_Event* e){ (void) udata;
 			De.mouse.abs[1] = e->motion.y;
 			De.mouse.rel[0] = e->motion.xrel;
 			De.mouse.rel[1] = e->motion.yrel;
-			// SDL_GetMouseState(&De.mouse.abs[0], &De.mouse.abs[1]);
-			// SDL_GetRelativeMouseState(&De.mouse.rel[0], &De.mouse.rel[1]);
 			break;
 
 		case SDL_MOUSEWHEEL:
@@ -127,8 +116,7 @@ int dinput_watcher(void* udata, SDL_Event* e){ (void) udata;
 
 
 
-
-// touch input posiiton (0, 0) is top-left and (1,1) is bottom-right
+//touch input posiiton (0, 0) is top-left and (1,1) is bottom-right
 		case SDL_FINGERDOWN:
 			for (int i = 0; i < DE_FINGER_MAX; ++i){
 				if(De.finger[i].down == false){
@@ -176,7 +164,7 @@ int dinput_watcher(void* udata, SDL_Event* e){ (void) udata;
 
 
 
-// misc
+//window
 		case SDL_WINDOWEVENT:
 			switch(e->window.event){
 				case SDL_WINDOWEVENT_SIZE_CHANGED:
@@ -192,14 +180,6 @@ int dinput_watcher(void* udata, SDL_Event* e){ (void) udata;
 
 				default: break;
 			}
-			break;
-
-		case SDL_DISPLAYEVENT:
-			    // SDL_ORIENTATION_UNKNOWN,            /**< The display orientation can't be determined */
-			    // SDL_ORIENTATION_LANDSCAPE,          /**< The display is in landscape mode, with the right side up, relative to portrait mode */
-			    // SDL_ORIENTATION_LANDSCAPE_FLIPPED,  /**< The display is in landscape mode, with the left side up, relative to portrait mode */
-			    // SDL_ORIENTATION_PORTRAIT,           /**< The display is in portrait mode */
-			    // SDL_ORIENTATION_PORTRAIT_FLIPPED
 			break;
 
 		default: break;
@@ -251,18 +231,11 @@ Uint32 dinput_usek(enum dinput_keycode keycode){
 
 
 
-void dmouse_grab(bool b){
-	if(b){
-		// SDL_ShowCursor(0);
-		// SDL_CaptureMouse(1);
-		SDL_SetRelativeMouseMode(1);
-	}
-	else {
-		// SDL_ShowCursor(1);
-		// SDL_CaptureMouse(0);
-		SDL_SetRelativeMouseMode(0);
-	}
-}
+void dmouse_grab(bool b){ SDL_SetRelativeMouseMode(b); }
+
+
+
+void dmouse_show(bool b){ SDL_ShowCursor(b); }
 
 
 

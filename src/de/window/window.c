@@ -2,8 +2,11 @@
 #include "../de_struct.h"
 #include "../android/glext.h"
 
+#ifdef ANDROID
+#define DE_WINDOW_DEFAULT_FLAGS SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
+#else
 #define DE_WINDOW_DEFAULT_FLAGS SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE
-// SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN
+#endif
 
 int dwindow_init(int x, int y, int flags){
 	dwindow_preconfig();
@@ -15,9 +18,7 @@ int dwindow_init(int x, int y, int flags){
 
 	flags |= SDL_WINDOW_OPENGL;
 
-	#ifdef ANDROID
-		// only possible window size is screen size
-		flags |= SDL_WINDOW_FULLSCREEN;
+	#ifdef ANDROID // only possible window size is screen size
 		x=0; y=0;
 	#endif
 

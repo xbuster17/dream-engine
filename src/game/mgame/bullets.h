@@ -4,8 +4,8 @@
 #include "../../de/de.h"
 
 typedef struct bullet {
+	// OBJ_STRUCT
 	bool inited;
-// OBJ_STRUCT
 	v4f pos;
 	v4c col0;
 	v4c col1;
@@ -19,13 +19,10 @@ typedef struct bullet {
 	float tacc;
 	float lifetime;
 	int frame;
-	// bool expired;
 	float dmg;
 	struct bullets* buf;
 	uint type;
 	void (*run)(struct bullet*);
-
-	// struct bullet* (*end)(struct bullet);
 } bullet;
 
 
@@ -35,7 +32,7 @@ typedef struct bullets{
 	dvao* vao;
 	dfbo* shadow_map;
 
-	uint cursor; // increases with each add, %= size
+	uint cursor; // increases with each add, %= len
 } bullets;
 
 
@@ -61,31 +58,28 @@ void name ## __run(bullet* in)
 
 #define def_bullet_init(name) \
 	if(in)\
-		if(!in->inited){                                             \
-			name.inited = true;                                             \
-			name.pos = in->pos;                                             \
-			name.vel = in->vel;                                             \
-			name.acc = in->acc;                                             \
-			name.col0 = (v4c){255,0,0,255};                                             \
-			name.col1 = (v4c){255,255,255,255};                                             \
-			name.rad = .3;                                             \
-			name.dmg = 1;                                             \
-			name.tvel = 5.0;                                             \
-			name.tacc = 5.0;                                             \
-			name.lifetime = 60*1000;                                             \
-			name.frame = 0;                                             \
-			bullets* buf = in->buf;                                             \
-			*in = name;                                             \
-			in->buf = buf;                                             \
-		}                                             \
-
+		if(!in->inited){\
+			name.inited = true;                      \
+			name.pos = in->pos;                      \
+			name.vel = in->vel;                      \
+			name.acc = in->acc;                      \
+			name.col0 = in->col0;                    \
+			name.col1 = in->col1;                    \
+			name.rad = in->rad;                      \
+			name.dmg = in->dmg;                      \
+			name.tvel = in->tvel;                    \
+			name.tacc = in->tacc;                    \
+			name.lifetime = i->lifetime;             \
+			name.frame = in->frame;                  \
+			/*copy everything, keep buffer pointer*/ \
+			bullets* buf = in->buf;                  \
+			*in = name;                              \
+			in->buf = buf;                           \
+		}
 
 
 //demos
 #include "bullet_type/types.h"
-// decl_bullet(joe);
-// decl_bullet(joe_spark);
-
 
 
 
@@ -93,6 +87,7 @@ void name ## __run(bullet* in)
 void bullets_init(uint count); //you should not call bullets new with an int higher than this
 void bullets_quit(void);
 bullets* bullets_new(uint count);
+void bullets_free(bullets*);
 
 void bullets_update(bullets*, float delta_time);
 
