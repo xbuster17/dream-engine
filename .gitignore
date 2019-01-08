@@ -1,10 +1,8 @@
-# compiled
 *.o
-*.wino
-
-# executables
 /de
+*.wino
 *.exe
 
-# android
+# /src/game/
+
 /de_android/

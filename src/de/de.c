@@ -7,6 +7,12 @@ int de_init(int x, int y, int flags){
 
 	memset(&De, 0, sizeof(typeof(De)));
 
+	#ifdef ANDROID
+		De.is_android = true;
+	#else
+		De.is_android = false;
+	#endif
+
 	if( dwindow_init( x, y, flags ) ){
 		exit(0);
 	}

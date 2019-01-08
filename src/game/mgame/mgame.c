@@ -3,7 +3,6 @@
 #include "mgame.h"
 
 struct game game;
-
 float* sndchunk;
 
 void mgame_init(void);
@@ -64,7 +63,7 @@ for (int i = 0; i < smplen*2; ++i){
 
 dsnd* testpsnd = dsnd_new(sndchunk, smplen * 2 * sizeof(float));
 
-dsnd_fade(dsnd_playl(testpsnd, -1), 6000);
+dsnd_fade(dsnd_playl(testpsnd, -1), 1000);
 // dsnd_free(testpsnd);
 }
 
@@ -101,7 +100,6 @@ void mgame_main(void){
 	bool dmktsel = 0;
 	enemy.pos = v4f_0;
 	enemy.vel = v4f_0;
-
 
 	DE_GAME_LOOP(){ if(dusek(DK_ESC) || dusek(DK_BACK)) break;
 		frame++;

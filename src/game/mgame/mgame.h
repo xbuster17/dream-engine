@@ -2,8 +2,8 @@
 #define __MGAME_H__
 #include "../../de/de.h"
 
-// #define num_enemy_bullets 10922
-#define num_enemy_bullets 4096
+#define num_enemy_bullets 10922
+// #define num_enemy_bullets 4096
 #define num_player_bullets 1000
 
 #include "bullets.h"

@@ -13,6 +13,9 @@ modules:
 	normalize tells gl to map integers to [1,-1], according to their type
 
 
+installing MXE:
+git clone mxe and `make glew sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf ogg mpg123`
+then `export PATH=/path/to/mxe/usr/bin:$PATH`
 
 
 

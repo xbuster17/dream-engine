@@ -40,6 +40,7 @@ def_bullet(glider){
 		in->buf = buf;
 	}
 	float h = game.hmap->f(in->pos[0], in->pos[2]);
+	// float h = hmap_eval(game.hmap, in->pos[0], in->pos[2]);
 	// if(h + in->rad + game.player.height/2 > in->pos[1]){
 	if(h + game.player.height + game.player.rad > in->pos[1]){
 		// in->pos[1] = h + in->rad + game.player.height/2;

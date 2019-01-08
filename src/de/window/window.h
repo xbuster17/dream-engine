@@ -8,6 +8,7 @@ void dwindow_quit(void);
 
 void dwindow_title(char*);
 void dwindow_size(int x, int y);
+void dwindow_pos(int x, int y);
 void dwindow_fullscreen(bool);
 bool dwindow_focus(void);
 void dwindow_get_gl_info(void); // updates info strings

@@ -177,10 +177,14 @@ int dinput_watcher(void* udata, SDL_Event* e){ (void) udata;
 				case SDL_WINDOWEVENT_TAKE_FOCUS:
 				case SDL_WINDOWEVENT_FOCUS_GAINED: De.window_focus = true; break;
 				case SDL_WINDOWEVENT_FOCUS_LOST: De.window_focus = false; break;
+				case SDL_WINDOWEVENT_MOVED:
+					De.wpos = (v2i){e->window.data1, e->window.data2};
+					break;
 
 				default: break;
 			}
 			break;
+
 
 		default: break;
 	}

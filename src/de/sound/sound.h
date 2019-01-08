@@ -4,6 +4,15 @@
 #include "../conf.h"
 #include "../libs.h"
 
+// overwrite values before calling de_init
+extern struct Dsnd_init_conf{
+	int mix_channels;
+	int sample_rate;
+	int bufsize;
+	int channels;
+	Uint16 format;
+} Dsnd_init_conf;
+
 typedef Mix_Chunk dsnd;
 typedef Mix_Music dmus;
 

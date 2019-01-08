@@ -2,15 +2,15 @@
 #define __DE_DE_H__
 
 #include "libs.h"
-// #include "modules.h"
 #include "common/common.h"
 #include "window/window.h"
 #include "input/input.h"
 #include "gl/gl.h"
-#include "cam/cam.h" // decomision me into de struct globals
+#include "cam/cam.h"
 #include "android/glext.h"
 #include "sound/sound.h"
 #include "mesh/mesh.h"
+// #include "shdl.h"
 
 #include "common/common.h"
 #include "de_struct.h"

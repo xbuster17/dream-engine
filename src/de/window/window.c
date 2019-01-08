@@ -44,6 +44,7 @@ int dwindow_init(int x, int y, int flags){
 		DE_LOGE("error: could not create window; %s", SDL_GetError());
 		return 1;
 	}
+	SDL_GetWindowPosition(De.win, &De.wpos[0], &De.wpos[1]);
 
 	De.ctx = SDL_GL_CreateContext(De.win);
 
@@ -108,6 +109,24 @@ void dwindow_quit(void){
 
 
 
+
+void dwindow_size(int x, int y){ if(De.is_android) return;
+	if(De.size[0] == x && De.size[1] == y) return;
+	SDL_SetWindowSize(De.win, x, y);
+	De.size[0] = x;
+	De.size[1] = y;
+}
+
+
+
+
+
+void dwindow_pos(int x, int y){ if(De.is_android) return;
+	if(De.wpos[0] == x && De.wpos[1] == y) return;
+	SDL_SetWindowPosition(De.win, x, y);
+	De.wpos[0] = x;
+	De.wpos[1] = y;
+}
 
 
 

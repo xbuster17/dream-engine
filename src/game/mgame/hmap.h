@@ -6,8 +6,8 @@
 typedef struct hmap{
 	float(*f)(float x, float y);
 	int x,y; //res
-	// dobj3d obj;
 	// v4f pos,rot,sca;
+	// dobj3d obj;
 	// m4f M, N, mvp;
 	// bool obj_updated;
 

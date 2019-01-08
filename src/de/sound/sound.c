@@ -2,13 +2,23 @@
 #include "../common/common.h"
 #include "../de_struct.h"
 
-static int init_mix_channels = 32;
+struct Dsnd_init_conf Dsnd_init_conf = {
+	.mix_channels  = 512,
+	.sample_rate  = 44100, // MIX_DEFAULT_FREQUENCY is 22050
+	.bufsize  = 1024,
+	.channels  = 2,
+	.format  = AUDIO_F32SYS
+};
 
-static int init_sample_rate = 44100; // MIX_DEFAULT_FREQUENCY is 22050
+// static int init_mix_channels = 512;
+
+// static int init_sample_rate = 44100; // MIX_DEFAULT_FREQUENCY is 22050
 // static int init_bufsize = 2048;
-static int init_bufsize = 1024;
-static int init_channels = 2;
-static Uint16 init_format = AUDIO_F32SYS;
+// static int init_bufsize = 128;
+// static int init_bufsize = 16;
+// static int init_channels = 2;
+// static Uint16 init_format = AUDIO_F32SYS;
+// static Uint16 init_format = AUDIO_S8;
 // AUDIO_S16SYS, AUDIO_S8, AUDIO_U16SYS, AUDIO_S32SYS ... Signed or Unsigned
 // LSB or MSB can be used instead of SYS for little or big endian byte order
 
@@ -52,18 +62,25 @@ int dsnd_init(void){
 
 //using sdl_mixer
 	Mix_Init( MIX_INIT_FLAC | MIX_INIT_MOD | MIX_INIT_MP3 | MIX_INIT_OGG );
-	if ( Mix_OpenAudio ( init_sample_rate, init_format, init_channels, init_bufsize ) == -1) {
+	// if ( Mix_OpenAudio ( init_sample_rate, init_format, init_channels, init_bufsize ) == -1) {
+	if ( Mix_OpenAudio ( Dsnd_init_conf.sample_rate, Dsnd_init_conf.format,
+			Dsnd_init_conf.channels, Dsnd_init_conf.bufsize ) == -1) {
 		printf("Mix_openAudio: %s\n", Mix_GetError());
 		DE_LOGE("%s\n", Mix_GetError());
 	}
 
 
-	Mix_AllocateChannels(init_mix_channels);
+	// Mix_AllocateChannels(init_mix_channels);
+	Mix_AllocateChannels(Dsnd_init_conf.mix_channels);
 
-	De.sample_rate = init_sample_rate;
-	De.audio_channels = init_channels;
-	De.audio_buffer_size = init_bufsize;
-	De.audio_format = init_format;
+	De.sample_rate = Dsnd_init_conf.sample_rate;
+	De.audio_channels = Dsnd_init_conf.channels;
+	De.audio_buffer_size = Dsnd_init_conf.bufsize;
+	De.audio_format = Dsnd_init_conf.format;
+	// De.sample_rate = init_sample_rate;
+	// De.audio_channels = init_channels;
+	// De.audio_buffer_size = init_bufsize;
+	// De.audio_format = init_format;
 
 	return 0;
 }

@@ -3,18 +3,21 @@
 #include <stdbool.h>
 #include "vector.h"
 
-typedef struct frustum{
+typedef struct dfrustum{
 	v4f planes[6];// left right top bottom near far
-} frustum;
+} dfrustum;
 
-typedef struct aabb{
+typedef struct daabb{
 	v4f min;
 	v4f max;
-} aabb;
+} daabb;
 
-frustum frustum_create(m4f m, bool normalize);
-bool point_in_frustum(frustum f, v4f pt);
-bool sphere_in_frustum(frustum f, v4f pt, float rad);
-bool aabb_in_frustum(frustum f, aabb box);
-bool point_in_aabb(aabb box, v4f p);
+
+dfrustum dfrustum_make(m4f m, bool normalize);
+daabb daabb_make(v4f min, v4f max);
+bool dfrustum_point(dfrustum f, v4f pt);
+bool dfrustum_has_sphere(dfrustum f, v4f pt, float rad);
+bool dfrustum_aabb(dfrustum f, daabb box);
+bool daabb_point(daabb box, v4f p);
+
 #endif

@@ -9,6 +9,7 @@
 #define DE_FINGER_MAX 12
 
 //shader tmp
+#define DE_SHD_HEADER "#version 100\n""precision highp float;\n"
 // #ifdef ANDROID /*opengl es*/
 #define DE_SHD_HEADERV "#version 100\n""precision highp float;\n"
 #define DE_SHD_HEADERF DE_SHD_HEADERV

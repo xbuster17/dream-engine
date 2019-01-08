@@ -2,7 +2,7 @@
 
 // frustum
 // takes in view-projection matrix
-frustum frustum_create(m4f m, bool normalize){
+dfrustum dfrustum_make(m4f m, bool normalize){
 /* source: Fast Extraction of Viewing Frustum Planes from the World-View-Projection Matrix - Gil Gribb, Klaus Hartmann*/
 	v4f v0 = {m[0],m[4],m[8],m[12]};
 	v4f v1 = {m[1],m[5],m[9],m[13]};
@@ -12,7 +12,7 @@ frustum frustum_create(m4f m, bool normalize){
 	// v4f v1 = {m[4],m[5],m[6],m[7]};
 	// v4f v2 = {m[8],m[9],m[10],m[11]};
 	// v4f v3 = {m[12],m[13],m[14],m[15]};
-	frustum fr = {
+	dfrustum fr = {
 		.planes[0] = v3 + v0,// left
 		.planes[1] = v3 - v0,// right
 		.planes[2] = v3 - v1,// top
@@ -33,7 +33,7 @@ frustum frustum_create(m4f m, bool normalize){
 
 
 
-bool dePointInFrustum(frustum f, v4f pt){
+bool dfrustum_point(dfrustum f, v4f pt){
 	int i ;
 	for(i=0 ; i < 6; i++){
 		if(v4f_dot(f.planes[i], pt) < 0){
@@ -45,7 +45,7 @@ bool dePointInFrustum(frustum f, v4f pt){
 
 
 
-bool deSphereInFrustum(frustum f, v4f pt, float rad){
+bool dfrustum_has_sphere(dfrustum f, v4f pt, float rad){
 	int i ;
 	pt[3] = 0;
 	for(i=0 ; i < 6; i++){
@@ -57,7 +57,8 @@ bool deSphereInFrustum(frustum f, v4f pt, float rad){
 }
 
 
-bool deAabbInFrustum(frustum f, aabb box){
+
+bool dfrustum_aabb(dfrustum f, daabb box){
 	int i;//,out, min;
 	for (i=0; i<6; i++){
 		int out = 0;
@@ -82,7 +83,16 @@ bool deAabbInFrustum(frustum f, aabb box){
 	return true;
 }
 
-bool dePointInAabb(aabb box, v4f p){
+
+
+daabb daabb_make(v4f min, v4f max){
+	daabb ret = {min, max};
+	return ret;
+}
+
+
+
+bool daabb_point(daabb box, v4f p){
 	return
 		(p[0] > box.min[0]) &&
 		(p[0] < box.max[0]) &&

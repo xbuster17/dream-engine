@@ -5,9 +5,7 @@
 #include "../conf.h"
 #include "../common/common.h"
 
-#define DSHD_QUOTEV(x) DE_SHD_HEADERV QUOTE(x)
-#define DSHD_QUOTEF(x) DE_SHD_HEADERF QUOTE(x)
-
+#define DSHD_QUOTE(x) DE_SHD_HEADER QUOTE(x)
 
 typedef struct dshd{
 	int ref;
@@ -20,8 +18,9 @@ typedef struct dshd{
 	char* frag_src;
 
 	int attrib_count;
-	char** attributes;
+	// char** attributes;
 
+	int unif_count;
 	struct dshd_uniforms{ // ignores "gl_" uniform names
 		int index; // the return value of glGetUniformLocation
 		char* name;
@@ -31,7 +30,6 @@ typedef struct dshd{
 		// points to variable holding the value, inits to null which uploads default value
 		void* value;
 	} *uniforms; // uniforms[ unif_count ];
-	int unif_count;
 
 	// here we store a copy of all the values as a matrix array
 	// since largest uniform is a 4x4 float matrix
@@ -52,6 +50,7 @@ int dshd_link_program(GLuint program);
 // returns previous value pointer
 void* dshd_unif(dshd*, char* name, void* store_ptr);
 void* dshd_unifi(dshd*, int index, void* store);
+int dshd_unif_index(dshd*, char* name);
 void dshd_update(dshd*);
 void dshd_unif_upload(dshd*, int index);
 

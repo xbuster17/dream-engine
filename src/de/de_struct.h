@@ -8,18 +8,21 @@ extern struct De{
 //window
 	char* title;
 	v2i size;
+	v2i wpos;
 	v2i ctx_size;
 	v2i screen_size;
 	float res; // y/x
 	float ctx_res; // y/x
 	float screen_res; // y/x
 
+	bool window_focus;
+	bool fullscreen;
+	bool is_android;
+
 	bool game_loop_quit; // if not 0 ends DE_GAME_LOOP
 	int game_loop_frame;
 
-	bool window_focus;
 	// bool mouse_grab;
-	bool fullscreen;
 
 	SDL_Window* win;
 	SDL_GLContext ctx;
