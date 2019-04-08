@@ -9,7 +9,8 @@ void dinput_init(void){
 
 	De.fingers_down = 0;
 	De.finger_click = 0;
-	De.finger_click_time = 160;
+	De.finger_click_pos = v2f_0;
+	De.finger_click_time = 100;
 
 	int num_scancodes;
 	SDL_GetKeyboardState( &num_scancodes );
@@ -43,6 +44,13 @@ void dinput_quit(void){
 
 void dinput_update(void){
 	De.mouse.rel *= 0;
+	/* hack to fix android screen rotation */
+	#if ANDROID
+		int x,y;
+		SDL_GetWindowSize(De.win, &x, &y);
+		// dviewport(x, y);
+		dwindow_resized(x,y);
+	#endif
 
 	SDL_PumpEvents();
 }
@@ -136,8 +144,10 @@ int dinput_watcher(void* udata, SDL_Event* e){ (void) udata;
 			for (int i = 0; i < DE_FINGER_MAX; ++i){
 				if(De.finger[i].id == e->tfinger.fingerId){
 					// finger click
-					if(e->tfinger.timestamp - De.finger[i].timestamp < De.finger_click_time)
+					if(e->tfinger.timestamp - De.finger[i].timestamp < De.finger_click_time){
 						De.finger_click += 1;
+						De.finger_click_pos = (v2f){ e->tfinger.x, e->tfinger.y };
+					}
 					De.finger[i].id = -1;
 					De.finger[i].down = false;
 					De.finger[i].captured = false;
@@ -239,7 +249,7 @@ void dmouse_grab(bool b){ SDL_SetRelativeMouseMode(b); }
 
 
 
-void dmouse_show(bool b){ SDL_ShowCursor(b); }
+void dmouse_hide(bool b){ SDL_ShowCursor(!b); }
 
 
 

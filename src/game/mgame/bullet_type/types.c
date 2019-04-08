@@ -24,32 +24,35 @@ bullet bullet_default = {
 def_bullet(glider){
 	if(!in->inited){
 		glider.inited = true;
-		glider.pos = in->pos;
-		glider.vel = in->vel;
-		glider.acc = in->acc;
-		glider.col0 = (v4c){255,0,0,255};
-		glider.col1 = (v4c){255,255,255,255};
-		glider.rad = .3;
-		glider.dmg = 1;
+		// glider.pos = in->pos;
+		// glider.vel = in->vel;
+		// glider.acc = in->acc;
+		// glider.col0 = (v4c){255,0,0,255};
+		// glider.col1 = (v4c){255,255,255,255};
+		// glider.rad = in->rad;
+		// glider.dmg = 1;
 		glider.tvel = 100.0;
 		glider.tacc = 100.0;
 		glider.lifetime = 60*1000;
 		glider.frame = 0;
 		bullets* buf = in->buf;
-		*in = glider;
+		// *in = glider;
 		in->buf = buf;
 	}
-	float h = game.hmap->f(in->pos[0], in->pos[2]);
-	// float h = hmap_eval(game.hmap, in->pos[0], in->pos[2]);
-	// if(h + in->rad + game.player.height/2 > in->pos[1]){
-	if(h + game.player.height + game.player.rad > in->pos[1]){
-		// in->pos[1] = h + in->rad + game.player.height/2;
-		in->pos[1] = h + game.player.height + game.player.rad;
+	if (in->lifetime - in->frame < 6) in->col1[3]/=2;
+	// float h = G.hmap->f(in->pos[0], in->pos[2]);
+	float h = hmap_eval(G.hmap, in->pos[0], in->pos[2]);
+
+	// if(h + in->rad + G.player.height/2 > in->pos[1]){
+	if(h + G.player.height + in->rad > in->pos[1]){
+		// in->pos[1] = h + in->rad + G.player.height/2;
+		in->pos[1] = h + G.player.height + in->rad;
 		in->vel[1] = 0;
 	} else {
 		// in->vel[1] = in->grav;
 	}
-	if(v3f_len( in->pos - game.player.pos ) < game.player_rad /*.2/4*/ + in->rad*0.95 ){
+// player collision
+	if(v3f_len( in->pos - G.player.pos ) < G.player.rad /*.2/4*/ + in->rad*0.5 ){
 		in->col0 *= 0;
 		bullet* b = bullets_add(in->buf, &playertrace);
 		b->vel = in->vel;
@@ -60,6 +63,7 @@ def_bullet(glider){
 		b->frame = -2000;
 		// b->col1 = playertrace.col1;
 		in->frame = in->lifetime+1;
+		dsnd_play(G.phitsnd);
 	}
 
 }
@@ -74,7 +78,7 @@ def_bullet(playertrace){
 		playertrace.col1 = (v4c){64,255,255,255};
 		playertrace.rad = .2;
 		playertrace.dmg = 1;
-		playertrace.tvel = 5.0;
+		playertrace.tvel = 500.0;
 		playertrace.tacc = 5.0;
 		playertrace.lifetime = 10;
 		playertrace.frame = 0;
@@ -83,7 +87,7 @@ def_bullet(playertrace){
 		in->buf = buf;
 	}
 	// in->rad = max(in->rad-0.01, 0);
-	in->rad = max(in->rad - 0.01f, 0.01);
+	in->rad = max(in->rad - 0.01, 0.03);
 	in->vel += v4f_rand()-.5;
 	// in->vel *= 2;
 	// in->col0[3] = max(in->col0[3] - 256 / in->lifetime, 0);
@@ -99,16 +103,17 @@ def_bullet(playeraura){
 		playeraura.acc = in->acc;
 		playeraura.col0 = (v4c){0,0,255,255};
 		playeraura.col1 = (v4c){64,255,255,255};
-		playeraura.rad = .3;
+		playeraura.rad = in->rad;
 		playeraura.dmg = 1;
 		playeraura.tvel = 5.0;
 		playeraura.tacc = 5.0;
-		playeraura.lifetime = 60;
+		playeraura.lifetime = 1;
 		playeraura.frame = 0;
 		bullets* buf = in->buf;
 		*in = playeraura;
 		in->buf = buf;
 	}
+	in->rad*=2-in->frame;
 	// in->rad = max(in->rad-0.01, 0);
 }
 
@@ -137,7 +142,8 @@ def_bullet(joe_spark){
 		in->buf = buf;
 	}
 	//player colision
-	if(v3f_len( in->pos - game.player.pos ) < /*game.player.rad*/ .2/4 + in->rad/2 ){
+	// if(v3f_len( in->pos - G.player.pos ) < /*G.player.rad*/ .2/4 + in->rad/2 ){
+	if(v3f_len( in->pos - G.player.pos ) < G.player.rad + in->rad/2 ){
 		in->col0 *= 0;
 		bullet* b = bullets_add(in->buf, &playertrace);
 		b->vel = in->vel;
@@ -149,7 +155,7 @@ def_bullet(joe_spark){
 		// b->col1 = playertrace.col1;
 		in->frame = in->lifetime+1;
 	}
-	// if(game.hmap->f(in->pos[0], in->pos[2]) >= in->pos[1] - in->rad) {in->vel[1]*=-1;in->pos+=in->vel*0.016f;/*in->acc*=0;*/ in->lifetime += 100;}
+	// if(G.hmap->f(in->pos[0], in->pos[2]) >= in->pos[1] - in->rad) {in->vel[1]*=-1;in->pos+=in->vel*0.016f;/*in->acc*=0;*/ in->lifetime += 100;}
 	// if(in->pos[1] < -2 ) {in->vel[1]*=-1;in->pos[1]=-2;/*in->acc*=0;*/ in->lifetime += 100;}
 	// in->rad = max(in->rad-.05, 0);
 	// in->rad = lerp(joe_spark.rad, 0, in->frame*1.f / in->lifetime );
@@ -218,4 +224,114 @@ def_bullet(joe){
 		in->vel += v4f_rand()*50-25;
 
 	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def_bullet(Pbul1){
+	if(!in->inited){
+		Pbul1.inited = true;
+		Pbul1.pos = in->pos;
+		Pbul1.vel = in->vel;
+		Pbul1.acc = v4f_0;//(v4f){0,-9,0,1};
+		Pbul1.col0 = (v4c){0,0,255,55};
+		Pbul1.col1 = (v4c){255,255,255,55};
+		Pbul1.rad = .2;
+		Pbul1.dmg = 1;
+		Pbul1.tvel = 50.0;
+		Pbul1.tacc = 1000.0;
+		Pbul1.lifetime = 60*8;
+		Pbul1.frame = 0;
+		bullets* buf = in->buf;
+		*in = Pbul1;
+		in->buf = buf;
+	}
+
+	// in->rad = min(in->rad+0.01, 0.06);
+	float dist2pl = v3f_len2(G.player.pos - in->pos);
+	if(dist2pl<0.1){
+		in->rad=.01;
+		in->col1[3] = 255;
+	} else {
+		in->rad = min(dist2pl/25.0+0.01, 0.06);
+		in->col1[3] = min(dist2pl*25, 255);
+	}
+
+	if (v3f_len2(G.enm[0].pos - in->pos) < .1){//hit enemy
+		in->frame=in->lifetime+1;
+		G.enm[0].hp -= in->dmg;
+
+		// if(in->col0[2]){
+		// 	bullet* b = bullets_add(in->buf, &Pbul1_hit);
+		// 	b->pos = in->pos;
+		// }
+	}
+
+	// float h = G.hmap->f(in->pos[0], in->pos[2]);
+	// float h = hmap_eval(G.hmap, in->pos[0], in->pos[2]);
+	in->vel = v4f_normalize(G.enm[0].pos - in->pos) * 4;
+
+	float h = hmap_eval(G.hmap, in->pos[0]+in->vel[0]*G.dt, in->pos[2]+in->vel[2]*G.dt) - in->vel[1]*G.dt;
+	// h += v4f_len(in->vel)*G.dt;
+//	// if(in->pos[1] < h) in->frame += in->lifetime+1;
+//	if(in->pos[1] < h) in->rad = 0;
+//	// if(h + G.player.height + G.player.rad > in->pos[1]){
+//	if(in->frame <= 25)
+//		in->col0[2] -= 10;
+//	else in->vel = v4f_normalize(G.enm[0].pos - in->pos) * 10;
+
+	in->pos[1] = max(h+in->rad, in->pos[1]);
+
+
+}
+
+
+
+
+def_bullet(Pbul1_hit){
+	if(!in->inited){
+		Pbul1_hit.inited = true;
+		Pbul1_hit.pos = in->pos;
+		Pbul1_hit.vel = v4f_0;
+		Pbul1_hit.acc = v4f_0;//(v4f){0,-9,0,1};
+		Pbul1_hit.col0 = (v4c){0,255,0,5};
+		Pbul1_hit.col1 = (v4c){255,255,255,5};
+		// Pbul1_hit.col1 = v4c_0;
+		Pbul1_hit.rad = .5;
+		Pbul1_hit.dmg = 1;
+		Pbul1_hit.tvel = 50.0;
+		Pbul1_hit.tacc = 1000.0;
+		Pbul1_hit.lifetime = 1;
+		Pbul1_hit.frame = 0;
+		bullets* buf = in->buf;
+		*in = Pbul1_hit;
+		in->buf = buf;
+	}
+	in->col0 = v4c_rand();
+	// in->rad -= .2;
+	in->col0[3] = 55;
+	in->col1[3] = 55;
+	in->col0[0] = 255;
+
 }

@@ -15,10 +15,10 @@
 #include <dirent.h>
 #include <errno.h>
 #include <sys/stat.h>  /*mkdir*/
+
 typedef unsigned int uint;
 typedef unsigned short ushort;
 
-/* SDL gl */
 #if defined (ANDROID)
 	#include <jni.h>
 	#include <GLES2/gl2.h>
@@ -31,16 +31,18 @@ typedef unsigned short ushort;
 	#include "../../de_android/jni/SDL2_mixer/SDL_mixer.h"
 	#include "../../de_android/jni/SDL2_net/SDL_net.h"
 	#include "../../de_android/jni/SDL2_ttf/SDL_ttf.h"
-
-	/* vao extension */
 	#include "android/glext.h"
-	// extern PFNGLBINDVERTEXARRAYOESPROC     glBindVertexArray;
-	// extern PFNGLDELETEVERTEXARRAYSOESPROC  glDeleteVertexArrays;
-	// extern PFNGLGENVERTEXARRAYSOESPROC     glGenVertexArrays;
-	// extern PFNGLISVERTEXARRAYOESPROC       glIsVertexArray;
 #else
-	#include <GL/glew.h>
-	#include <GL/gl.h>
+	#ifdef _WIN32
+		#include <GL/glew.h>
+		#include <GL/gl.h>
+	#else
+		#include <GLES2/gl2.h>
+		#include <GLES2/gl2ext.h>
+		#include <GLES/gl.h>
+		#include <GLES/glext.h>
+		#include "android/glext.h"
+	#endif
 	#include <SDL2/SDL.h>
 	#include <SDL2/SDL_image.h>
 	#include <SDL2/SDL_mixer.h>
@@ -48,7 +50,7 @@ typedef unsigned short ushort;
 	#include <SDL2/SDL_ttf.h>
 #endif
 
-
+// ensure 'SDL_main' is defined and 'main' is not
 #ifdef main
 	#undef main
 #endif

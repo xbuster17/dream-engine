@@ -1,6 +1,7 @@
 #include "glext.h"
 
-#if defined (ANDROID)
+#ifndef _WIN32
+// defined (ANDROID)
 
 #include "../libs.h"
 #include "../common/log.h"
@@ -31,7 +32,6 @@ void dandroid_glext_init(void){
 		_libhandle = dlopen( "libGLESv3.so", RTLD_LAZY | RTLD_GLOBAL );
 
 	if(!_libhandle) DE_LOGE("libGLESv2/3.so not found!");
-
 	//VAO
 	glBindVertexArray = (PFNGLBINDVERTEXARRAYOESPROC)dlsym( _libhandle,
 		"glBindVertexArrayOES");
@@ -41,6 +41,7 @@ void dandroid_glext_init(void){
 		"glGenVertexArraysOES");
 	glIsVertexArray = (PFNGLISVERTEXARRAYOESPROC)dlsym(_libhandle,
 		"glIsVertexArrayOES");
+
 
 	if(!glBindVertexArray || !glDeleteVertexArrays || !glGenVertexArrays || !glIsVertexArray)
 		De.glext_has_vao = 0;
@@ -58,7 +59,7 @@ void dandroid_glext_quit(void){
 
 
 
-#else // not android
+#else // windows
 
 void dandroid_glext_init(void){return;}
 void dandroid_glext_quit(void){return;}

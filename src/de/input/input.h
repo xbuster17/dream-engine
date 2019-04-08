@@ -16,7 +16,7 @@ Uint32 dinput_getk(enum dinput_keycode keycode);
 Uint32 dinput_usek(enum dinput_keycode keycode);
 
 void dmouse_grab(bool b); // hide and capture mouse for fps-like controls
-void dmouse_show(bool b);
+void dmouse_hide(bool b);
 
 void dfinger_click_time(int ms);
 

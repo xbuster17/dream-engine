@@ -89,7 +89,7 @@ typedef struct dvap {
 
 	GLboolean normalize;
 	// GLuint index;       // get with name from shader?
-	// index is now selected based on the possition on the array
+	// index is now selected based on the position on the array
 	GLint dim;          /* 1 to 4*/
 	GLenum type;        /*GL_FLOAT, GL_INT, etc...*/
 	GLsizei stride;     /*sizeof all components*/
@@ -172,6 +172,7 @@ int dvao_draw(dvao*, uint start, uint len, GLenum mode);
 // modes: GL_POINTS, GL_LINE_STRIP, GL_LINE_LOOP, GL_LINES, GL_TRIANGLE_STRIP,
 //        GL_TRIANGLE_FAN, GL_TRIANGLES
 
+void dvao_draw_quad(void); // "f2pos" for rendering shaders
 
 // int dvao_get_index(dvao*, char* attribute_name);
 
@@ -180,10 +181,10 @@ void dvao_set_mode(dvao*, GLenum draw_mode);
 // copy n bytes starting at src into vao->vertex_data, formated (interleaved) for opengl
 // n is attrb_type_size * attrib_dim * vertex_count
 // this is ONLY commited to vram after calling dvao_update
-int dvao_set(dvao* vao, int attribute_id, int target_vertex, void* src, int vertex_count);
+int dvao_set(dvao* vao, int attribute_id, void* src, int target_vertex, int vertex_count);
 
 // if src is already interleaved you can use setr
-int dvao_setr(dvao* vao, int buffer_index, int target_vertex, void* src, int vertex_count);
+int dvao_setr(dvao* vao, int buffer_index, void* src, int target_vertex, int vertex_count);
 
 
 int dvao_get(dvao* , int attr_id, int first, int count, void* dst);

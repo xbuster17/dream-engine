@@ -4,7 +4,7 @@ MAIN = ./src/main.c
 GAME_DIR = src/game
 
 
-CCFLAG = -std=gnu99 -Wall -Wextra -g -O3 -Wno-psabi -ffast-math -funroll-loops
+CCFLAG = -std=gnu99 -g -O3 -Wall -Wextra -Wno-psabi -ffast-math -funroll-loops -D _DEFAULT_SOURCE
 CPPCFLAG = -std=gnu++11 -Wall -Wextra -g -O3
 LFLAG = $(CCFLAG)
 
@@ -14,12 +14,15 @@ SDL2_CONFIG = $(CROSS)sdl2-config
 CPPC = $(CROSS)g++
 
 # glew gl SDL2 SDL2_mixer SDL2_net SDL2_image SDL2_ttf libpng
-LIBS = -lm \
-       -DGLEW_STATIC \
+    # -DGLEW_STATIC
+    # glew gl SDL2_mixer SDL2_net SDL2_image SDL2_ttf libpng
+
+LIBS = -lm -ldl \
+       $(WIN_LIBS) \
        $(shell $(PKG_CONFIG) --cflags --libs \
-        glew gl SDL2_mixer SDL2_net SDL2_image SDL2_ttf libpng)\
-       # $(shell $(SDL2_CONFIG) --cflags --libs)\
-       $(WIN_LIBS)
+        gl SDL2_mixer SDL2_net SDL2_image SDL2_ttf) \
+       $(shell $(SDL2_CONFIG) --cflags --libs)\
+
 
 
 GAME_SRC = \
@@ -28,10 +31,8 @@ GAME_SRC = \
   $(wildcard $(GAME_DIR)/*/*/*.cpp)   $(wildcard $(GAME_DIR)/*/*/*.c)
 
 ENGINE_SRC = \
-  $(wildcard ./src/de/*.c)\
-  $(wildcard ./src/de/*/*.c)\
-  $(wildcard ./src/de/*/*/*.c)\
-  $(wildcard ./src/de/*/*/*/*.c)
+  $(wildcard ./src/de/*.c) $(wildcard ./src/de/*/*.c)\
+  $(wildcard ./src/de/*/*/*.c) $(wildcard ./src/de/*/*/*/*.c)
 
 ENGINE_OBJ = $(subst .c,.$(CROSSOBJ)o,$(ENGINE_SRC))
 GAME_OBJ = $(subst .c,.$(CROSSOBJ)o,$(GAME_SRC))
@@ -96,9 +97,10 @@ rund:
 #______________________________________________________________________________
 # WINDOWS - mxe
 WIN_EXEC = $(EXEC).exe
-WIN_FLAG = CROSSOBJ=win CROSS=i686-w64-mingw32.static- EXEC=$(WIN_EXEC) WIN_LIBS=-liphlpapi
+WIN_FLAG = CROSSOBJ=win. CROSS=i686-w64-mingw32.static- EXEC=$(WIN_EXEC) WIN_LIBS="-liphlpapi -DGLEW_STATIC -lGLEW"
 # WIN_FLAG = CROSSOBJ=win CROSS=x86_64-w64-mingw32.static- EXEC=$(WIN_EXEC)
 # -liphlpapi is requiered for sdl_net to link properly
+# required libs: sdl2 sd2_* glew dlfcn-win32
 
 win:
 	make $(WIN_FLAG) -j4
@@ -151,7 +153,7 @@ define ANDROID_MK_PREFIX
 LOCAL_PATH := $$(call my-dir)\n\
 include $$(CLEAR_VARS)\n\
 LOCAL_MODULE := main\n\
-SDL_PATH := ../SDL2\n\
+SDL_PATH       := ../SDL2\n\
 SDL_MIXER_PATH := ../SDL2_mixer                 \n\
 SDL_NET_PATH   := ../SDL2_net                   \n\
 SDL_IMAGE_PATH := ../SDL2_image                 \n\

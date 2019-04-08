@@ -26,6 +26,8 @@ decl_bullet(glider);
 decl_bullet(playertrace);
 decl_bullet(playeraura);
 
+decl_bullet(Pbul1);
+decl_bullet(Pbul1_hit);
 
 
 

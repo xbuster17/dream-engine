@@ -2,9 +2,9 @@
 #define __MGAME_H__
 #include "../../de/de.h"
 
-#define num_enemy_bullets 10922
-// #define num_enemy_bullets 4096
-#define num_player_bullets 1000
+// #define num_enemy_bullets 10922
+#define num_enemy_bullets 4096
+#define num_player_bullets 512
 
 #include "bullets.h"
 
@@ -14,16 +14,21 @@
 	v4f pos; \
 	v4f rot; \
 	v4f sca; \
-	v4f vel, acc;
+	v4f vel, acc
 
 typedef struct obj{
-	OBJ_STRUCT
+	OBJ_STRUCT;
 } obj;
 
 struct player{
-	OBJ_STRUCT
+	OBJ_STRUCT;
 	float rad;
 	float height;
+};
+
+struct enemy{
+	OBJ_STRUCT;
+	float hp;
 };
 
 extern struct game {
@@ -31,21 +36,23 @@ extern struct game {
 	bullets* player_bullets;
 
 	hmap* hmap;
+	hmap* hmap1;
 
 	struct player player;
-	float player_rad;
-	m4f proj;
-	m4f view;
-	m4f mvp;
+	// float player_rad;
+	dfbo* pbulfbo;
+
+	struct enemy enm[128];
+	v4f clear_color;
+	// m4f proj;
+	// m4f view;
+	// m4f mvp;
 	int frame;
-} game;
-
-
-typedef struct scene{
-	void (*init)(void);
-	void (*update)(void);
-	void (*free)(void);
-} scn;
+	float dt;
+	struct lvl* curr_lvl;
+	dsnd* phitsnd;
+	float* screensmp;
+} G;
 
 void mgame_main(void);
 

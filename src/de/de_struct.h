@@ -61,6 +61,7 @@ extern struct De{
 	uint fingers_down;
 
 	int finger_click;
+	v2f finger_click_pos;
 	// adds 1 if a finger is released with a
 	// delta timestamp < finger_click_time
 	// must be cleared manually

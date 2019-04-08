@@ -64,7 +64,7 @@ dvao* dvao_new(char* vertex_format, void** vertex_sources, int num_vertices, GLe
 
 	if(vertex_sources){
 		for( int i = 0; i < vao->vaps->len; i++ ){
-			int err = dvao_set(vao, i, 0, vertex_sources[i], num_vertices);
+			int err = dvao_set(vao, i, vertex_sources[i], 0, num_vertices);
 			if(err) DE_LOG("error vao_set: %i\n", err); // todo proper error logging
 		}
 		dvao_update(vao);
@@ -83,7 +83,7 @@ dvao* dvao_newr(char* vertex_format, void** vertex_sources, int num_vertices, GL
 
 	if(vertex_sources){
 		for( int i = 0; i < vao->vaps->num_buffers; i++ ){
-			int err = dvao_setr(vao, i, 0, vertex_sources[i], num_vertices);
+			int err = dvao_setr(vao, i, vertex_sources[i], 0, num_vertices);
 			if(err) DE_LOG("error at vao_set: %i\n", err); // todo proper error logging
 		}
 	}
@@ -172,7 +172,7 @@ int dvao_drawi(dvao* vao, dibo* ibo, uint start_index, uint len, GLenum mode){
 
 
 
-int dvao_set(dvao* vao, int attr_id, int target_vertex, void* src, int vertex_count){
+int dvao_set(dvao* vao, int attr_id, void* src, int target_vertex, int vertex_count){
 	if(!vao) return 1;
 	if(!src) return 3;
 	if(attr_id >= vao->vaps->len) return 2;
@@ -208,7 +208,7 @@ int dvao_set(dvao* vao, int attr_id, int target_vertex, void* src, int vertex_co
 
 
 
-int dvao_setr(dvao* vao, int vbo_id, int target_vertex, void* src, int vertex_count){
+int dvao_setr(dvao* vao, int vbo_id,void* src, int target_vertex, int vertex_count){
 	if(!vao){ DE_LOG("vao is null"); return 1;}
 	if(!src){ DE_LOG("src is null"); return 3;}
 	if(vbo_id >= vao->vaps->num_buffers){DE_LOG("vbo out of bounds"); return 2;}
@@ -756,3 +756,43 @@ void dibo_draw(dibo* ibo, int start, int count, GLenum mode){ if(!ibo) return;
 	glDrawElements(mode, count, GL_UNSIGNED_SHORT, (void*)first);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// tools/extra
+static float Dvao_draw_quad_verts[] = {
+	-1.0, -1.0,
+	 1.0, -1.0,
+	-1.0,  1.0,
+	 1.0,  1.0
+};
+void dvao_draw_quad(void){ if(!De.shd_bound) return;
+	void* vecs[1] = {Dvao_draw_quad_verts};
+	dvao* vao = dvao_new("f2pos", vecs, 4, GL_TRIANGLE_STRIP);
+	dvao_draw(vao, 0,4,0);
+	dvao_free(vao);
+}

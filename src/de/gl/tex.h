@@ -10,8 +10,8 @@ typedef struct dtex{
 	int ref;
 	int x;
 	int y;
-	bool is_cube; // todo
-	GLenum type;   // default GL_TEXTURE_2D
+	// bool is_cube; // todo
+	// GLenum type;   // default GL_TEXTURE_2D
 	GLenum min;    // default GL_LINEAR
 	GLenum mag;    // default GL_LINEAR
 	GLenum wrap_s; // default GL_REPEAT
@@ -20,7 +20,11 @@ typedef struct dtex{
 
 dtex* dtex_open(char* file_path);
 dtex* dtex_new(v4c* src, int x, int y); // unsigned byte rgba
-void  dtex_free(dtex*);
+dtex* dtex_newf(v4c* pixels, int x, int y, GLenum format);
+dtex* dtex_newt(v4c* pixels, int x, int y, GLenum internal_format, GLenum format, GLenum type);
+
+void dtex_free(dtex*);
+dtex* dtex_ref(dtex*);
 
 void dtex_bind(dtex*, int unit); // NULL => unbind
 dtex* dtex_from_surface(SDL_Surface* sur);
@@ -34,6 +38,7 @@ dtex* dtex_new_cube(dtex* t[6], int x, int y); // top,bottom,left,right,front,ba
 
 
 void dtex_draw(dtex*);
+void dtex_drawa(dtex*, float alpha);
 
 
 typedef struct dfbo{

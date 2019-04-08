@@ -26,6 +26,9 @@
 #define deg2rad(deg) (((deg)*PI)/180.f)
 #define rad2deg(rad) (((rad)*180.f)/PI)
 
+float px2gl(int val, int min, int max);
+int gl2px(float val, int min, int max);
+
 #define hash4(x,y,z,seed) (((x)*73856093 ^ (y)*19349663 ^ (z)*179426549 ^ (seed)*19349663))
 #define hash3(x,y,seed) (((x)*73856093 ^ (y)*15257039477 ^ (seed)*19349663))
 #define hash2(x,y) (((x)*73856093 ^ (y)*83492791))

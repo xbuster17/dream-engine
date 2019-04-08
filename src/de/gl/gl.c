@@ -22,11 +22,10 @@ void dgl_quit(void){ return; }
 
 
 
-void dclear(GLint flags){
-	if(!flags)
-		flags = DE_GL_DEFAULT_CLEAR_FLAGS;
-		// flags = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
-	glClear(flags);
+void dclear(GLint flag){
+	if(!flag)
+		flag = DE_GL_DEFAULT_CLEAR_FLAGS;
+	glClear(flag);
 }
 
 

@@ -8,7 +8,9 @@ static m4f _uniform_null = {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0};
 
 
 
-
+// adds header -- TODO
+// dshd* dshd_newfile(FILE* vertex_src_file, FILE* fragment_src_file){
+// }
 
 dshd* dshd_new(char* vertex_src, char* fragment_src){
 	if(!vertex_src || !fragment_src) return NULL;
@@ -147,33 +149,48 @@ dshd* dshd_new(char* vertex_src, char* fragment_src){
 	glGetProgramiv(shd_program, GL_ACTIVE_UNIFORMS, &active_uniforms);
 	glGetProgramiv(shd_program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &active_uniforms_max_len);
 
-	shd->uniforms = malloc(sizeof(struct dshd_uniforms) * active_uniforms);
 
 	char unif_name[active_uniforms_max_len];
 	int fi = 0;
 	GLenum unif_type = 0;
 	int unif_alen = 0;
 
+//count total amount
 	for(int i = 0; i < active_uniforms; i++){
 		glGetActiveUniform(shd_program, i, active_uniforms_max_len, NULL,
 			&unif_alen, &unif_type, unif_name);
-		shd->uniforms[i].size = 0;
-		shd->uniforms[i].value = &_uniform_null;
-		shd->uniforms[i].name = NULL;
-		shd->uniforms[i].index = -1;
+		if( strstr(unif_name, "gl_") ) continue;
+		fi += unif_alen;
+	}
+
+	shd->uniforms = malloc(sizeof(struct dshd_uniforms) * fi);
+	shd->unif_count = fi;
+
+	fi = 0;
+	for(int i = 0; i < active_uniforms; i++){
+		glGetActiveUniform(shd_program, i, active_uniforms_max_len, NULL,
+			&unif_alen, &unif_type, unif_name);
+
+		// shd->uniforms[i].size = 0;
+		// shd->uniforms[i].value = &_uniform_null;
+		// shd->uniforms[i].name = NULL;
+		// shd->uniforms[i].index = -1;
 
 		if( strstr(unif_name, "gl_") ) continue;
 
-		shd->uniforms[fi].size = dshd_uniform_type_size(unif_type);
-		shd->uniforms[fi].value = &_uniform_null;
+		for(int j=0; j<unif_alen; j++){
 
-		shd->uniforms[fi].index = glGetUniformLocation(shd->program, unif_name);
-		shd->uniforms[fi].type = unif_type;
-		shd->uniforms[fi].alen = unif_alen;
-		// shd->uniforms[fi].name = strndup(unif_name, active_uniforms_max_len);
-		shd->uniforms[fi].name = strdup(unif_name);
-
-		fi++;
+			shd->uniforms[fi].size = dshd_uniform_type_size(unif_type);
+			shd->uniforms[fi].value = &_uniform_null;
+			if(unif_alen>1 && j>0)
+				unif_name[strlen(unif_name)-2]++;
+			shd->uniforms[fi].index = glGetUniformLocation(shd->program, unif_name);
+			shd->uniforms[fi].type = unif_type;
+			shd->uniforms[fi].alen = unif_alen;
+			// shd->uniforms[fi].name = strndup(unif_name, active_uniforms_max_len);
+			shd->uniforms[fi].name = strdup(unif_name);
+			fi++;
+		}
 	}
 
 	shd->unif_count = fi;
@@ -270,9 +287,13 @@ int dshd_link_program(GLuint program){
 
 
 void dshd_bind(dshd* shd){
-	if(!shd) De.shd_bound = 0;
-	else De.shd_bound = shd->program;
-	glUseProgram(De.shd_bound);
+	if(!shd){
+		De.shd_bound = 0;
+		glUseProgram(De.shd_bound);
+	} else if (De.shd_bound != shd->program){
+		De.shd_bound = shd->program;
+		glUseProgram(De.shd_bound);
+	}
 }
 
 

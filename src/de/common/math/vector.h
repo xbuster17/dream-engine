@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <limits.h>
 // posibly require gcc extension to compile
+
 typedef int     v2i __attribute__((vector_size(sizeof(int)*2)));
 typedef int     v4i __attribute__((vector_size(sizeof(int)*4)));
 typedef int     m2i __attribute__((vector_size(sizeof(int)*4)));

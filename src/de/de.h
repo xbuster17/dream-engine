@@ -10,11 +10,9 @@
 #include "android/glext.h"
 #include "sound/sound.h"
 #include "mesh/mesh.h"
-// #include "shdl.h"
 
 #include "common/common.h"
 #include "de_struct.h"
-
 
 int de_init(int x, int y, int flags);
 void de_quit(void);
@@ -33,6 +31,6 @@ void de_quit(void);
 			dclear(0),                   \
 			dinput_update(),             \
 			De.game_loop_frame++         \
-		) /* your code here : */         \
+		) /* your code here */
 
 #endif

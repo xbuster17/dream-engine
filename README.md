@@ -2,6 +2,36 @@ dream engine
 
 released under the MIT license (read LICENSE)
 
+disclaimer: this api was created for personal projects, without intention of being distribuited, it is not documented and it isnt ready for releases.
+
+file structure:
+	all the source files (.c, .h) must go in the src folder, the makefile scans for all pairs of foo.h and foo.c and compiles an object foo.o or foo.win.o out of them.
+	main.c is at the root of src by default (you can change the location from the makefile) and must contain int SDL_main(int argc, char** argv) which will be the entry point to the c code from your android app.
+	src/de contains all the engine's src.
+	by default, src/game contains your game source, you can change this on the makefile.
+
+	all assets you plan to pack should be in the assets folder.
+
+	clone de_android git into root folder.
+	de_android contains links to assets and src, internal android project files, names, icons, etc.
+	and, inside the jni folder, the sources for every library used, and Android.mk makefiles to compile those libraries.
+	renaming android project consists of editing plenty of files, described in de_android/README.
+	_todo a script to automate project creation and renaming_
+
+
+usage:
+	include de.h
+
+	the global De struct contains most engine parameters, it's defined on src/de/de_struct.h
+
+	de_init(int x, int y, int flags) initializes the engine modules and creates a window of size (x,y) with the specified SDL window flags
+		x: width, 0 defaults to screen size
+		y: height, 0 defaults to screen size
+		flags: any valid SDL_WINDOW_... flag, 0 defaults to SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN.
+		on android, x,y and flags is always set to default
+
+
+
 
 modules:
 	window: sdl initialization, glcontext setup
@@ -14,15 +44,17 @@ modules:
 
 
 installing MXE:
-git clone mxe and `make glew sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf ogg mpg123`
+clone mxe repo `git clone https://github/com/mxe/mxe.git`
+and run
+`make glew sdl2 sdl2_image sdl2_mixer sdl2_net sdl2_ttf ogg mpg123 [libmikmod|modplug]`
+note this will download packages, needs 2GiB of ram to link gcc and 700MB of disk space
 then `export PATH=/path/to/mxe/usr/bin:$PATH`
 
 
 
 
-
 quirks:
-sdl defines 'main' and we cant use it inside QUOTE() for shaders, main is made undefined in libs.h
+on android and windows SDL_main must be used instead of main and must have standard type
 
 input & main thread:
 DE_GAME_LOOP calls SDL_PumpEvents which can only be called from the main thread
@@ -66,7 +98,7 @@ android:
 SDL_WINDOW_RESIZABLE required for apps with both portrait and landscape orientations
 
 
+
 TODO
 handle sdl event android background, text composition, dropfile, mouse wheel
 
-fix wine mousegrab slowdown

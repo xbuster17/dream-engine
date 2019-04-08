@@ -19,6 +19,15 @@ dmesh* dmesh_new(dvao* v, dtex* t){ if(!v) return NULL;
 	m->m = m4f_id();
 	m->n = m4f_id();
 	m->mvp = m4f_id();
+//tmp light
+	m->lp1 = (v4f){0,0,0,1};
+	m->lc1 = (v4f){1,1,1,0};
+	m->li1 = 1;
+
+	m->lp2 = (v4f){0,0,0,1};
+	m->lc2 = (v4f){1,1,1,0};
+	m->li2 = 1;
+
 	return m;
 }
 
@@ -28,37 +37,14 @@ void dmesh_free(dmesh* m){ if(!m) return;
 	free(m);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+void dmesh_tex(dmesh* m, dtex* t){ if(!m || !t) return;
+	dtex_free(m->tex);
+	m->tex = dtex_ref(t);
+}
 
 void dmesh_update(dmesh* m){ if(!m) return;
 	m->m = m4f_model(m->pos, m->rot, m->sca);
-	// m4f M = m4f_id();
-	// M = m4f_translate(M, m->pos);
-	// if(m->rot[2]) M = m4f_rotate_z(M, m->rot[2]);
-	// if(m->rot[1]) M = m4f_rotate_y(M, m->rot[1]);
-	// if(m->rot[0]) M = m4f_rotate_x(M, m->rot[0]);
-	// M = m4f_scale(M, m->sca);
-	// m->m = M;
-
-	// M[15]=1; M[3]=M[7]=M[11]=M[14]=M[13]=M[12]=0;
-	// m->n = m4f_transpose(m4f_inverse(M));
-
 	m->n = m4f_timodel(m->m);
-
 	m->mvp = m4f_mul(m->m, De.cam.vp);
 }
 
@@ -84,13 +70,15 @@ void dmesh_update(dmesh* m){ if(!m) return;
 
 dshd* Dmesh_shd = NULL;
 char* Dmesh_shd_vsrc, *Dmesh_shd_fsrc;
-static struct Dmesh_shd_unif
-{
+static struct Dmesh_shd_unif{
 	m4f n, m, mvp;
 	int tex_unit;
 	v4f mdif, mspec, eye;
 	float mshin;
 	// lights
+	v4f lp1, lc1;
+	v4f lp2, lc2;
+	float li1, li2;
 } Dmesh_shd_unif;
 
 
@@ -105,6 +93,12 @@ void dmesh_shd_init(void){ if(Dmesh_shd) return;
 	dshd_unif(Dmesh_shd, "mspec", &Dmesh_shd_unif.mspec);
 	dshd_unif(Dmesh_shd, "mshin", &Dmesh_shd_unif.mshin);
 	dshd_unif(Dmesh_shd, "eye", &Dmesh_shd_unif.eye);
+	dshd_unif(Dmesh_shd, "lp1", &Dmesh_shd_unif.lp1);
+	dshd_unif(Dmesh_shd, "lc1", &Dmesh_shd_unif.lc1);
+	dshd_unif(Dmesh_shd, "li1", &Dmesh_shd_unif.li1);
+	dshd_unif(Dmesh_shd, "lp2", &Dmesh_shd_unif.lp2);
+	dshd_unif(Dmesh_shd, "lc2", &Dmesh_shd_unif.lc2);
+	dshd_unif(Dmesh_shd, "li2", &Dmesh_shd_unif.li2);
 }
 
 
@@ -116,8 +110,15 @@ void dmesh_shd_unif_update(dmesh* m){ if(!m) return;
 	Dmesh_shd_unif.tex_unit = 0;
 	Dmesh_shd_unif.mdif = (v4f){1,1,1,1};
 	Dmesh_shd_unif.mspec = (v4f){1,1,1,1};
-	Dmesh_shd_unif.mshin = 8.0;
+	Dmesh_shd_unif.mshin = 16.0;
 	Dmesh_shd_unif.eye = De.cam.pos;
+//tmp light
+	Dmesh_shd_unif.lp1 = m->lp1;
+	Dmesh_shd_unif.lc1 = m->lc1;
+	Dmesh_shd_unif.li1 = m->li1;
+	Dmesh_shd_unif.lp2 = m->lp2;
+	Dmesh_shd_unif.lc2 = m->lc2;
+	Dmesh_shd_unif.li2 = m->li2;
 }
 
 
@@ -179,23 +180,14 @@ char* Dmesh_shd_vsrc = DE_SHD_HEADERV QUOTE(
 	uniform vec4 mdif;
 	uniform vec4 mspec;
 	uniform float mshin;
-
 	// TODO light uniforms
-	// uniform vec4 lamb;
-	// uniform vec4 lp1;
-	// uniform vec4 lc1;
-	// uniform float li1;
-	// uniform vec4 lp2;
-	// uniform vec4 lc2;
-	// uniform float li2;
-
-//hard light
-	vec4 lpos = eye;
-	vec4 lcol = vec4(1.0, 1.0, 1.0, 1.0);
-	float lpow = 0.978;
-	// vec4 spec = vec4(0.95, 0.95, 0.95, 1.0);
-	// vec4 dif = vec4(0.95, 0.94, 0.95, 1.0);
-	// float shin = 16.0;
+	uniform vec4 lamb;
+	uniform vec4 lp1;
+	uniform vec4 lc1;
+	uniform float li1;
+	uniform vec4 lp2;
+	uniform vec4 lc2;
+	uniform float li2;
 
 
 	vec4 light( // directional light
@@ -222,9 +214,21 @@ char* Dmesh_shd_vsrc = DE_SHD_HEADERV QUOTE(
 	varying vec2 vtc;
 
 	void main(void){
+//hard light
+		// vec4 lpos = vec4(0.,0.,0.,1.);
+		// vec4 lcol = vec4(1.0, 1.0, 1.0, 1.0);
+		// float lpow = 1.978;
+		// vec4 spec = vec4(0.95, 0.95, 0.95, 1.0);
+		// vec4 dif = vec4(0.95, 0.94, 0.95, 1.0);
+		// float shin = 16.0;
+
+
+
 		vtc = atc;
 
-		vcol = light(eye, ap, an, M,N, lpos, lcol, lpow, mspec, mdif, mshin);
+		// vcol = light(eye, ap, an, M,N, lpos, lcol, lpow, mspec, mdif, mshin);
+		vcol = light(eye, ap, an, M,N, lp1, lc1, li1, mspec, mdif, mshin);
+		vcol += light(eye, ap, an, M,N, lp2, lc2, li2, mspec, mdif, mshin);
 		gl_Position = MVP * ap;
 	}
 );

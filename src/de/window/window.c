@@ -8,6 +8,9 @@
 #define DE_WINDOW_DEFAULT_FLAGS SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE
 #endif
 
+int dwindow_glext_init(void);
+void dwindow_glext_quit(void);
+
 int dwindow_init(int x, int y, int flags){
 	dwindow_preconfig();
 
@@ -52,21 +55,11 @@ int dwindow_init(int x, int y, int flags){
 
 
 
+	if (dwindow_glext_init()) return 2;
+
 	dwindow_get_gl_info();
 
-/* opengl extensions */
-	#if defined (ANDROID)
-		dandroid_glext_init();
-	#else
-		GLenum glewError = glewInit();
-		if (glewError != GLEW_OK) {
-			DE_LOGE("GLEW: ERROR: %s\n", glewGetErrorString(glewError));
-			return 2;
-		}
-		De.glext_has_vao = 1;
-	#endif
-
-/* SDL_Image_Init */
+	/* SDL_Image_Init */
 	// img_flags |= IMG_INIT_TIF; // windows and android error: not suported
 	int img_flags = IMG_INIT_JPG | IMG_INIT_PNG;
 	int initted = IMG_Init(img_flags);
@@ -89,7 +82,8 @@ int dwindow_init(int x, int y, int flags){
 void dwindow_quit(void){
 	SDL_DestroyWindow(De.win);
 	SDL_GL_DeleteContext(De.ctx);
-	dandroid_glext_quit();
+	// dandroid_glext_quit();
+	dwindow_glext_quit();
 	DE_LOG("window destroyed");
 }
 
@@ -187,6 +181,7 @@ void dwindow_preconfig(void){
 	// SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+	// SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 	/* antialias */
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
@@ -209,3 +204,104 @@ void dwindow_get_gl_info(void){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int dwindow_glext_init(void){
+De.glext_has_vao = 0;
+#ifdef _WIN32
+	GLenum glewError = glewInit();
+	if (glewError != GLEW_OK) {
+		DE_LOGE("GLEW: ERROR: %s\n", glewGetErrorString(glewError));
+		return 1;
+	}
+	De.glext_has_vao = 1;
+#else
+	dandroid_glext_init();
+#endif
+
+	return 0;
+}
+
+void dwindow_glext_quit(void){
+
+}
+
+
+
+
+
+
+
+#if 0
+
+#include <dlfcn.h>
+
+PFNGLBINDVERTEXARRAYOESPROC     glBindVertexArray;
+PFNGLDELETEVERTEXARRAYSOESPROC  glDeleteVertexArrays;
+PFNGLGENVERTEXARRAYSOESPROC     glGenVertexArrays;
+PFNGLISVERTEXARRAYOESPROC       glIsVertexArray;
+
+static char _inited = 0;
+static void* _libhandle;
+
+void dandroid_glext_init(void){
+// glBindVertexArray = glBindVertexArrayOES;
+// glDeleteVertexArrays = glDeleteVertexArraysOES;
+// glGenVertexArrays = glGenVertexArraysOES;
+// glIsVertexArray = glIsVertexArrayOES;
+
+	if (_inited) return;
+
+	_inited = 1;
+
+	if(De.gles_v2)
+		_libhandle = dlopen( "libGLESv2.so", RTLD_LAZY | RTLD_GLOBAL );
+	else
+		_libhandle = dlopen( "libGLESv3.so", RTLD_LAZY | RTLD_GLOBAL );
+
+	if(!_libhandle) DE_LOGE("libGLESv2/3.so not found!");
+
+	//VAO
+	glBindVertexArray = (PFNGLBINDVERTEXARRAYOESPROC)dlsym( _libhandle,
+		"glBindVertexArrayOES");
+	glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSOESPROC)dlsym( _libhandle,
+		"glDeleteVertexArraysOES");
+	glGenVertexArrays = (PFNGLGENVERTEXARRAYSOESPROC)dlsym( _libhandle,
+		"glGenVertexArraysOES");
+	glIsVertexArray = (PFNGLISVERTEXARRAYOESPROC)dlsym(_libhandle,
+		"glIsVertexArrayOES");
+
+	if(!glBindVertexArray || !glDeleteVertexArrays || !glGenVertexArrays || !glIsVertexArray)
+		De.glext_has_vao = 0;
+	else
+		De.glext_has_vao = 1;
+
+}
+
+
+
+void dandroid_glext_quit(void){
+	if (_inited) dlclose(_libhandle);
+	_inited = 0;
+}
+
+
+#endif

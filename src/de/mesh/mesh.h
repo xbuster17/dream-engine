@@ -18,7 +18,14 @@ typedef struct dmesh{
 	dvao* vao;
 	dtex* tex;
 	dshd* shd;
-	//lights
+	//tmp lights
+	v4f lp1;
+	v4f lc1;
+	float li1;
+	v4f lp2;
+	v4f lc2;
+	float li2;
+
 } dmesh;
 
 dmesh* dmesh_open(char* mesh_path, char* tex_path); //tex is optional NULL
