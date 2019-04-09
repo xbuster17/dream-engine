@@ -4,31 +4,30 @@ released under the MIT license (read LICENSE)
 
 disclaimer: this api was created for personal projects, without intention of being distribuited, it is not documented and it isnt ready for releases.
 
-file structure:
-	all the source files (.c, .h) must go in the src folder, the makefile scans for all pairs of foo.h and foo.c and compiles an object foo.o or foo.win.o out of them.
-	main.c is at the root of src by default (you can change the location from the makefile) and must contain int SDL_main(int argc, char** argv) which will be the entry point to the c code from your android app.
-	src/de contains all the engine's src.
-	by default, src/game contains your game source, you can change this on the makefile.
+file structure
+all the source files (.c, .h) must go in the src folder, the makefile scans for all pairs of foo.h and foo.c and compiles an object foo.o or foo.win.o out of them.
+main.c is at the root of src by default (you can change the location from the makefile) and must contain int SDL_main(int argc, char** argv) which will be the entry point to the c code from your android app.
+src/de contains all the engine's src.
+by default, src/game contains your game source, you can change this on the makefile.
+all assets you plan to pack should be in the assets folder.
 
-	all assets you plan to pack should be in the assets folder.
+clone de_android git into root folder.
 
-	clone de_android git into root folder.
-	de_android contains links to assets and src, internal android project files, names, icons, etc.
-	and, inside the jni folder, the sources for every library used, and Android.mk makefiles to compile those libraries.
-	renaming android project consists of editing plenty of files, described in de_android/README.
-	_todo a script to automate project creation and renaming_
+de_android contains links to assets and src, internal android project files, names, icons, etc.
+and, inside the jni folder, the sources for every library used, and Android.mk makefiles to compile those libraries.
+renaming android project consists of editing plenty of files, described in de_android/README.
+_todo a script to automate project creation and renaming_
 
 
-usage:
-	include de.h
+usage
+include de.h
+the global De struct contains most engine parameters, it's defined on src/de/de_struct.h
 
-	the global De struct contains most engine parameters, it's defined on src/de/de_struct.h
-
-	de_init(int x, int y, int flags) initializes the engine modules and creates a window of size (x,y) with the specified SDL window flags
-		x: width, 0 defaults to screen size
-		y: height, 0 defaults to screen size
-		flags: any valid SDL_WINDOW_... flag, 0 defaults to SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN.
-		on android, x,y and flags is always set to default
+de_init(int x, int y, int flags) initializes the engine modules and creates a window of size (x,y) with the specified SDL window flags
+	x: width, 0 defaults to screen size
+	y: height, 0 defaults to screen size
+	flags: any valid SDL_WINDOW_... flag, 0 defaults to SDL_WINDOW_BORDERLESS | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN.
+	on android, x,y and flags is always set to default
 
 
 
@@ -36,7 +35,7 @@ usage:
 modules:
 	window: sdl initialization, glcontext setup
 	vao: Vertex Array Object, glVertexAttribPointer (vap), glVertexBufferObject (vbo)
-	vertex format parser handles <type> <dim> [name] [',' or ';'] '\0'
+	vertex format parser handles "<type> <dim> [name] [',' or ';'] '\0'"
 	up to 16 which is gl standard,
 	type is 'f', 'i', 's' or 'c'. with optionally 'u' or 'n' at any point
 	these stand for the first letter in float, int, short, char, unsigned, normalize
