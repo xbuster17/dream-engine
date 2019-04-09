@@ -1,10 +1,6 @@
 #include "vao.h"
 #include "../de_struct.h"
 
-#define DE_GL_DEFAULT_DRAW_MODE GL_TRIANGLES
-#define DE_GL_DEFAULT_VBO_USAGE GL_STATIC_DRAW
-
-
 void dvao_free(dvao* vao){
 	if( !vao ) return;
 	if( vao->ref ){ vao->ref--; return; }

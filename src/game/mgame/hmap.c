@@ -374,7 +374,6 @@ void hmap_draw(hmap* hmap){
 
 
 
-
 char* hmap_vshdsrc = DE_SHD_HEADERV QUOTE(
 	attribute vec4 ap;
 	attribute vec4 an;
@@ -417,13 +416,13 @@ char* hmap_vshdsrc = DE_SHD_HEADERV QUOTE(
 	// 	vec4 spec, vec4 diff, float shininess
 	// ){
 	\t    vec4 inor = normalize(N * vnor);                                 \n
-	\t    vec4 lspec = vec4(0.0, 0.0, 0.0, 1.0);                           \n
+	// \t    vec4 lspec = vec4(0.0, 0.0, 0.0, 1.0);                           \n
 	// \t    vec4 v = normalize( eye - M * vpos);                             \n
 	\t    vec4 ldirv = lpos - vpos;                                        \n
 	\t    vec4 ldir = normalize(ldirv);                                    \n
 	// \t    vec4 r = reflect(-ldir, inor);                                   \n
 	\t    float cosTheta = max(dot(ldir, inor), 0.0);                      \n
-	\t    float dist2 = dot(ldirv, ldirv);                         \n
+	\t    float dist2 = pow(dot(ldirv, ldirv), .5);                         \n
 	\t    vec4 ldiff = diff * lcol * lpow * cosTheta/dist2;              \n
 	// \t    if(cosTheta > 0.0)                                               \n
 	// \t\t        lspec = ( spec  *  lcol  *  lpow  *                        \n
@@ -463,8 +462,8 @@ vec4 pos = ap;
 		// vcol += vec4(.3,.2,.23, 0.0);
 
 
-		vcol *= light(vp, vn, N, ppos+vec4(0.0,0.5,0.0,0.0), vec4(0.2,0.2,0.98,0.0), lpow*4.0, diff)
-		 +     light(vp, vn, N, lpos+vec4(0.0,1.5,0.0,0.0), lcol, lpow*4.0, diff);
+		vcol *= light(vp, vn, N, ppos+vec4(0.0,0.75,0.0,0.0), vec4(0.2,0.2,0.98,0.0), lpow*1.0, diff)
+		 +     light(vp, vn, N, lpos+vec4(0.0,1.5,0.0,0.0), lcol, lpow*1.0, diff);
 		vcol += vec4(.39,.28,.21, 0.0);
 		vcol = pow(vcol, vec4(2.5,2.5,2.5,1.0));
 
@@ -575,8 +574,9 @@ char* hmap_fshdsrc = DE_SHD_HEADERF QUOTE(
 
 		float sdist = length(vp.xz-ppos.xz);
 		// float sfogfactor = (focus.w/5.0 - sdist)/(focus.w/5.0-focus.w/8.0);
-		float sfogfactor = (focus.w/10.0 - sdist)/(focus.w/10.0-focus.w/20.0);
+		float sfogfactor = (focus.w/10.0 - sdist)/(focus.w/10.0-focus.w/80.0);
 		sfogfactor = clamp( sfogfactor, 0.0, 1.0);
+		// stcol *= 4.0;
 		stcol = mix(vec4(0.0,0.0,0.0,1.0), stcol, sfogfactor);
 //cheap player light over shadow
 		// stcol *= vec4(.17, .17, .9, 1.0) * sdist;
@@ -598,7 +598,7 @@ char* hmap_fshdsrc = DE_SHD_HEADERF QUOTE(
 		// float fogfactor = (31.0 - dist)/(31.0-20.0); // player center 64 block fog dist
 		// float fogfactor = (40.0 - dist)/(40.0-30.0); // transposed focus
 		float dist = length(vp.xz-ppos.xz);
-		float fogfactor = (focus.w/2.1 - dist)/(focus.w/2.1-focus.w/16.0); // focus fog
+		float fogfactor = (focus.w/2.5 - dist)/(focus.w/2.5-focus.w/3.0); // focus fog
 		fogfactor = clamp( fogfactor, 0.0, 1.0);
 
 		// if (fogfactor<0.1) discard;

@@ -127,11 +127,11 @@ void mgame_main(void){
 
 
 
-	DE_GAME_LOOP(){ if(dusek(DK_ESC) || dusek(DK_BACK)) break;
+	DE_GAME_LOOP(){
+		if(dusek(DK_ESC) || dusek(DK_BACK)) break;
 		frame++;
 		G.clear_color = (v4f){.2, .08, .202}/2.0;
 		dclear_color(G.clear_color);
-
 
 
 
@@ -155,7 +155,7 @@ if (frame%160 == 0) {
 	// enemy.vel[0] = dmktsel? (((1.f*rand())/INT_MAX)-.5f)*2 : 0;
 	// enemy.vel[2] = dmktsel? (((1.f*rand())/INT_MAX)-.5f)*2 : 0;
 
-#if 1
+#if 0
 	if(dmktsel) {
 		int il = 16; // density
 		int jl = il;
@@ -581,10 +581,6 @@ void mplayer_update(void){
 
 
 
-
-
-
-
 // shoot
 	if(!Pgrounded) goto skip_shoot;
 	if(G.frame % 4) goto skip_shoot;
@@ -595,7 +591,7 @@ void mplayer_update(void){
 		bullet* b = bullets_add(G.player_bullets, &Pbul1);
 		b->pos = G.player.pos;
 		// b->pos[1] += .2;
-		b->rad = 0.00;
+		// b->rad = 0.00;
 		// b->vel = (v4f){0,10,0,0} + (v4f_rand() -.5);
 	}
 	if(pe_len2 < 5*5 && Pgrounded>60){
@@ -604,7 +600,7 @@ void mplayer_update(void){
 		float s = sin(G.frame/4.f);
 		bullet* b = bullets_add(G.player_bullets, &Pbul1);
 		// b->vel = (v4f){10,0,10,0} * (v4f_rand() -.5);
-		b->rad = 0.00;
+		// b->rad = 0.00;
 		b->col0[0]=255;
 		b->pos = G.player.pos + tp;
 		// b->vel = (v4f){s*5,0,0,0};
@@ -613,7 +609,7 @@ void mplayer_update(void){
 
 		b = bullets_add(G.player_bullets, &Pbul1);
 		b->col0[0]=255;
-		b->rad = 0.00;
+		// b->rad = 0.00;
 		b->pos = G.player.pos - tp;
 		// b->vel = (v4f){-s*5,0,0,0};
 		// b->vel = v4f_mmul(b->vel, m4f_rotation_y(G.player.rot[1]));

@@ -21,11 +21,8 @@
 // binding the vao binds all the vbos
 // read opengl vertex specification docs for more details
 
-
-
-
-
-
+#define DE_GL_DEFAULT_DRAW_MODE GL_TRIANGLES
+#define DE_GL_DEFAULT_VBO_USAGE GL_STATIC_DRAW
 
 
 
@@ -35,7 +32,6 @@ typedef struct dvbo{
 	GLuint id;
 	int ref;
 	GLsizei size;
-
 	GLenum usage; // GL_STATIC_DRAW, ...
 } dvbo;
 
@@ -46,16 +42,6 @@ void dvbo_bind(dvbo*);
 void dvbo_data(dvbo* vbo, void* data, uint size, GLenum usage); // realloc
 void dvbo_set(dvbo*, uint offset, void* data, uint size);
 void dvbo_set_usage(dvbo* vbo, GLenum usage);
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -83,21 +69,19 @@ void dvbo_set_usage(dvbo* vbo, GLenum usage);
 #define DVAP_TYPE_UINT_SIZE     (sizeof(GLuint))
 #define DVAP_TYPE_FLOAT_SIZE    (sizeof(GLfloat))
 
+// vertex attrib pointer for glVertexAttribPointer
 typedef struct dvap {
 	char* name; // optional name for an attribute on a vertex shader
 	int vbo_index;
-
 	GLboolean normalize;
-	// GLuint index;       // get with name from shader?
-	// index is now selected based on the position on the array
-	GLint dim;          /* 1 to 4*/
+	// GLuint index; // index is now selected based on the position on the array
+	GLint dim;          /*1 to 4*/
 	GLenum type;        /*GL_FLOAT, GL_INT, etc...*/
 	GLsizei stride;     /*sizeof all components*/
 	uintptr_t offset;   /*where the attrib being defined starts in the vbo*/
 } dvap;
-
-
-typedef struct dvaps{ // no vao and glVertexAttribPointer arg gen
+// array of dvap
+typedef struct dvaps{
 	int len; // attrib count
 	int ref;
 	int num_buffers; // how many buffers does the vap want
@@ -116,20 +100,6 @@ int dvaps_parse(dvaps*, char* format);
 
 int dvaps_get_buffer_stride(dvaps*, int buffer);
 uint dvaps_type_size(GLenum type);
-
-
-
-// int dvaps_count_buffers(char* format);
-
-// void dvaps_index(dvaps*, dshd*);
-
-
-
-
-
-
-
-
 
 
 
@@ -155,9 +125,9 @@ typedef struct dvao{
 } dvao;
 
 
-
 dvao* dvao_new(char* vertex_format, void** vertex_sources, int num_vertices, GLenum mode);
-// or if each array attribute is already interleaved use:
+
+// faster, for interleaved attributes
 dvao* dvao_newr(char* vertex_format, void** vertex_sources, int num_vertices, GLenum mode);
 
 dvao* dvao_ref(dvao*);
@@ -165,7 +135,6 @@ dvao* dvao_ref(dvao*);
 void dvao_free(dvao*);
 
 void dvao_bind(dvao*);
-
 
 int dvao_draw(dvao*, uint start, uint len, GLenum mode);
 // start and len 0 for drawing everything

@@ -26,7 +26,6 @@ int shadow_map_size = 1024;
 int shadow_map_size = 1024*2;
 #endif
 dtex* bullet_tex;
-dfbo* bullet_fbo;
 static int zero = 0;
 
 m4f shadow_cam_view;
@@ -34,6 +33,7 @@ m4f shadow_cam_view;
 dshd* bullet_shadow_shd = NULL;
 char* bullet_shadow_shd_vsrc;
 char* bullet_shadow_shd_fsrc;
+v4f Hmap_shadow_focus;
 
 
 
@@ -135,20 +135,16 @@ void bullets_init(uint count){
 	}
 
 	bullet_ibo = dibo_new(ibo, count*6, GL_TRIANGLES);
-
-
-
-
 	free(ibo);
 
 
 //shadow
 	shadow_cam_view = m4f_view(v4f_0, (v4f){PI/2, 0, 0});
 	bullet_shadow_shd = dshd_new(bullet_shadow_shd_vsrc, bullet_shadow_shd_fsrc);
-	// bullet_fbo = dfbo_new(512,512);
+
 	dshd_unif(bullet_shadow_shd, "m", &shadow_cam_view);
 	dshd_unif(bullet_shadow_shd, "tex", &zero);
-
+	dshd_unif(bullet_shadow_shd, "hmap_focus", &Hmap_shadow_focus);
 
 	_bullet_buffer_mutex = SDL_CreateMutex();
 }
@@ -323,19 +319,16 @@ void bullets_upload(bullets* bs){if (!bs) return;
 
 
 
-
 void bullets_draw(bullets* bs){ if(!bs) return;
 	dtex_bind(bullet_tex, 0);
 
 	if(bs->shadow){
-
-
 	// update shadow map
 		dfbo_bind(bs->shadow_map);
 		dclear_color((v4f){0,0,0,0});
 		dclear(0);
-		// ddepth(0,0);
-		dcam_update();
+		// dcam_update();
+	// dblend(0);
 
 	// v4f hfocus = game.hmap->focus;
 	// hfocus[1] = 64;
@@ -350,11 +343,11 @@ void bullets_draw(bullets* bs){ if(!bs) return;
 	// m4f m = m4f_model(-game.hmap->focus, (v4f){PI/2, 0, 0}, (v4f){1, 1, 1,0});
 		// if(game.hmap->mode & HMAP_FIXED){
 			// dshd_unif(bullet_shadow_shd, "hmap_focus", &G.hmap->ifocus);
-			dshd_unif(bullet_shadow_shd, "hmap_focus", &G.hmap->focus);
+		// dshd_unif(bullet_shadow_shd, "hmap_focus", &G.hmap->focus);
 		// } else {
 			// dshd_unif(bullet_shadow_shd, "hmap_focus", &game.hmap->focus);
 		// }
-
+Hmap_shadow_focus = G.hmap->focus;
 		// dshd_unif(bullet_shadow_shd, "m", &m);
 		// dshd_unif(bullet_shadow_shd, "tex", &zero);
 		// dtex_bind(bullet_tex, 0);
