@@ -93,7 +93,7 @@ dtex* dtex_newt(v4c* pixels, int x, int y, GLenum internal_format, GLenum format
 
 
 void dtex_bind(dtex* tex, int slot){
-	slot = min(slot, DE_GL_MAX_TEX_UNIT-1);
+	slot = MIN(slot, DE_GL_MAX_TEX_UNIT-1);
 	if(!tex){
 		Dtex_bound[slot] = NULL;
 		glActiveTexture(GL_TEXTURE0 + slot);

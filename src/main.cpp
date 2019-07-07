@@ -5,10 +5,7 @@
 #include "game/ex/shd-metaball.h"
 #include "game/golf/golf.h"
 
-void ex_shd_metaball(void);
-
 int SDL_main(int argc, char**argv){ (void)argv, (void)argc;
-printf("%c\n", "hello"[1]);
 	// Dsnd_init_conf.bufsize = 128;
 	// Dsnd_init_conf.sample_rate = 22050;
 	// Dsnd_init_conf.format = AUDIO_S16SYS;

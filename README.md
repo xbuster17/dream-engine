@@ -19,7 +19,7 @@ renaming android project consists of editing plenty of files, described in de_an
 _todo a script to automate project creation and renaming_
 
 
-usage
+usage:
 include de.h
 the global De struct contains most engine parameters, it's defined on src/de/de_struct.h
 
@@ -33,13 +33,15 @@ de_init(int x, int y, int flags) initializes the engine modules and creates a wi
 
 
 modules:
-	window: sdl initialization, glcontext setup
-	vao: Vertex Array Object, glVertexAttribPointer (vap), glVertexBufferObject (vbo)
-	vertex format parser handles "<type> <dim> [name] [',' or ';'] '\0'"
-	up to 16 which is gl standard,
-	type is 'f', 'i', 's' or 'c'. with optionally 'u' or 'n' at any point
-	these stand for the first letter in float, int, short, char, unsigned, normalize
-	normalize tells gl to map integers to [1,-1], according to their type
+window: sdl initialization, glcontext setup
+
+vao: Vertex Array Object, glVertexAttribPointer (vap), glVertexBufferObject (vbo), Index Buffer Object
+vertex format parser handles string like "type dim [name] [',' or ';']"
+up to 16 attributes, which is gl standard.
+type is 'f', 'i', 's' or 'c'. with optionally 'u' or 'n' at any point
+these stand for the first letter in float, int, short, char, unsigned, normalize
+normalize tells gl to map integers to [1,-1], according to their type
+
 
 
 installing MXE:
@@ -73,28 +75,28 @@ every float number in glsl must have an explicit decimal
 if you dont use a variable in glsl it gets optimized away, if this is an attribute or uniform, it will change the index and cause graphic bugs, note that it is not enough to assign a variable to an unused variable.
 
 gl ibo ext:
-GL_UNSIGNED_INT and GL_OES_element_index_uint extension:
-even tho this should work on gles2 the only device i have to try it gives GL_INVALID_ENUM
-as if the extension wasn't aviable despite it being in glGetString(GL_EXTENSIONS)
-so element buffer object is made with shorts for the moment ...
+	GL_UNSIGNED_INT and GL_OES_element_index_uint extension:
+	even tho this should work on gles2 the only device i have to try it gives GL_INVALID_ENUM
+	as if the extension wasn't aviable despite it being in glGetString(GL_EXTENSIONS)
+	so element buffer object is made with shorts for the moment ...
 
 
 makefile:
-it doesnt detect included headers so it will not update every file and it's buggy
-the simplest way to fix it is `make rm && make`
-the android makefile handles this correctly
+	it doesnt detect included headers so it will not update every file and it's buggy
+	the simplest way to fix it is `make rm && make`
+	the android makefile handles this correctly
 
 
 audio:
-when using sdl mixer don't call the following sdl functions:
-SDL_OpenAudio, SDL_CloseAudio, SDL_PauseAudio, SDL_LockAudio, SDL_UnlockAudio.
-use Mix_Pause(-1) and Mix_PauseMusic or Mix_Resume(-1) and Mix_ResumeMusic instead.
-it is also a BAD idea to call SDL_mixed and SDL audio functions from a callback.
-Callbacks include Effects functions and other SDL_mixer audio hooks
+	when using sdl mixer don't call the following sdl functions:
+	SDL_OpenAudio, SDL_CloseAudio, SDL_PauseAudio, SDL_LockAudio, SDL_UnlockAudio.
+	use Mix_Pause(-1) and Mix_PauseMusic or Mix_Resume(-1) and Mix_ResumeMusic instead.
+	it is also a BAD idea to call SDL_mixed and SDL audio functions from a callback.
+	Callbacks include Effects functions and other SDL_mixer audio hooks
 
 
 android:
-SDL_WINDOW_RESIZABLE required for apps with both portrait and landscape orientations
+	SDL_WINDOW_RESIZABLE required for apps with both portrait and landscape orientations
 
 
 

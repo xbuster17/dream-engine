@@ -43,16 +43,16 @@ struct dfinger* rthumb = NULL;
 
 void mgame_init(void){
 	bullets_init( num_enemy_bullets );
-	G.enemy_bullets = bullets_new(num_enemy_bullets,true,1);
-	G.player_bullets = bullets_new(num_player_bullets,false,1);
+	G.enemy_bullets = bullets_new(num_enemy_bullets,true,   0);
+	G.player_bullets = bullets_new(num_player_bullets,false,0);
 	G.dt = 0.016f;
 	G.player.pos = v4f_0;
 	G.player.vel = v4f_0;
 	G.player.rad = .075/2;
 	G.player.height = .025f;
 
-	// G.hmap = hmap_new(hmap_res,hmap_res, hfunc, 0);
-	G.hmap = hmap_new(hmap_res,hmap_res, hfunc, HMAP_DYNAMIC | HMAP_FIXED);
+	// G.hmap0 = hmap_new(hmap_res,hmap_res, hfunc, 0);
+	G.hmap0 = hmap_new(hmap_res,hmap_res, hfunc, HMAP_DYNAMIC | HMAP_FIXED);
 
 
 
@@ -107,14 +107,12 @@ void mgame_init(void){
 
 
 
+
+
 void mgame_main(void){
 	mgame_init();
-// dvsync(2);
 	int frame = 0;
 
-
-//enemy test
-	// obj enemy;
 	struct enemy enemy;
 	v4f spinning_dmk_dir = v4f_0;
 	spinning_dmk_dir[0] = 1;
@@ -131,12 +129,9 @@ void mgame_main(void){
 		if(dusek(DK_ESC) || dusek(DK_BACK)) break;
 		frame++;
 		G.clear_color = (v4f){.2, .08, .202}/2.0;
+		// G.clear_color = (v4f){0,0,0,0};
+		// G.clear_color = (v4f){0.5,0,0.5,0};
 		dclear_color(G.clear_color);
-
-
-
-
-
 
 
 
@@ -203,18 +198,20 @@ if(!(frame%2)){
 	b->rad = .075;
 	b->col1 = (v4c){255,255,255,255};
 	// b->col1 = v4c_rand();
-	b->col0 = (v4c){rand(),255,0,255};
+	b->col0 = (v4c){(dmktsel%2)*255,255,0,255};
 }
 
 
 // spinning dmk
-if(!(frame%2)){
+// if(!(frame%2)){
+if(true){
 	for (int i = 0; i < 1; ++i){
 		bullet* tor = bullets_add(G.enemy_bullets, &glider);
 		tor->pos = enemy.pos;
 		tor->vel = spinning_dmk_dir *0.7f;//* 1.5;
 		tor->acc[1] = -2;
 		tor->rad = 0.04;
+		tor->col0[2] = (dmktsel%2)*255;
 		spinning_dmk_dir = v4f_mmul(spinning_dmk_dir, m4f_rotation_y(PI/6.0));
 	}
 	if(dmktsel) spinning_dmk_dir = v4f_mmul(spinning_dmk_dir, m4f_rotation_y(-PI/(6.0/4)+0.12));
@@ -224,27 +221,28 @@ if(!(frame%2)){
 
 
 enemy.pos += enemy.vel * G.dt;
-enemy.pos[1] = hmap_eval(G.hmap, enemy.pos[0], enemy.pos[2]) + 0.1;
+enemy.pos[1] = MAX(G.player.pos[1], hmap_eval(G.hmap0, enemy.pos[0], enemy.pos[2])) + 0.1;
 
 G.enm[0] = enemy;
 
 
-		mplayer_update();
 
+
+
+		mplayer_update();
 
 		bullets_update(G.enemy_bullets, .016f);
 		bullets_update(G.player_bullets, .016f);
 
-		hmap_update(G.hmap, G.player.pos);
+		hmap_update(G.hmap0, G.player.pos);
 
 		bullets_draw(G.enemy_bullets);
 
-		hmap_draw(G.hmap);
+		hmap_draw(G.hmap0);
 
 		bullets_draw(G.player_bullets);
 
 		G.frame++;
-		// G.dt = De.dt;
 	}
 
 	mgame_quit();
@@ -269,24 +267,71 @@ G.enm[0] = enemy;
 
 
 
+#define HFS 256
+bool _once = false;
+int hfv_size = HFS;
+// char hfv[128*128];
+char hfv[HFS*HFS];
+#undef HFS
 
+void init_hfunc( void );
 
+char hfv_read(float x, float y){
+	x+=hfv_size/2;
+	y+=hfv_size/2;
+	if(x > hfv_size-1) return 0;
+	else if(x < 0) return 0;
+	else if(y > hfv_size-1) return 0;
+	else if(y < 0) return 0;
+	else
+		return hfv[ (int)x * hfv_size + (int)y ];
+}
 
+void init_hfunc( void ){
+	for (int i = 0; i < hfv_size; ++i){
+		for (int j = 0; j < hfv_size; ++j){
+			hfv[i * hfv_size + j] = 0;
+		}
+	}
+	// drunk walk
+	int steps = 5000;
+	int d;
+	v2i w = {hfv_size/2, hfv_size/2};
+	for (int i = 0; i < steps; ++i){
+		d=rand()%4;
+		if(d==0) w[0] = MIN(w[0]+1, hfv_size-1);
+		if(d==1) w[0] = MAX(w[0]-1, 0);
+		if(d==2) w[1] = MIN(w[1]+1, hfv_size-1);
+		if(d==3) w[1] = MAX(w[1]-1, 0);
+		hfv[ w[0]*hfv_size + w[1] ]=2;
+		hfv[ MIN(w[0]+1,hfv_size-1)*hfv_size + w[1] ]=2;
+		hfv[ w[0]*hfv_size + MIN(w[1]+1,hfv_size-1) ]=2;
+		hfv[ MIN(w[0]+1,hfv_size-1)*hfv_size + MIN(w[1]+1,hfv_size-1) ]=2;
+	}
+}
 
 
 // function for the hmap
 float hfunc(float x,float y){
+	if (!_once){
+		init_hfunc();
+		_once = true;
+	}
 	// return 5* sin(x*y/10 + G.frame / 50.f);
 	// return 10* sin(fmodf(x,7) * fmodf(y,11) / (7*11) );
+//sample walker
+	float hfvv = hfv_read(x,y);
+
 	if (x>-2 && x<6 && y>-1 && y<6) return 0;
+
 	// return 0;
 
 	v2d p = {x,y};
 	// return -v2d_len(p)/2 + noise2((p+G.frame/50.f)/10.f);
 
 
-	// v4f tp = v4f_mmul((v4f){x,0,y,0}, m4f_inverse(G.hmap->m));
-	// v4f tp = ((v4f){x,0,y,0})/G.hmap->sca;
+	// v4f tp = v4f_mmul((v4f){x,0,y,0}, m4f_inverse(G.hmap0->m));
+	// v4f tp = ((v4f){x,0,y,0})/G.hmap0->sca;
 	// v2d p = {tp[0], tp[2]};
 
 	float yf = G.frame/50.f;
@@ -300,6 +345,8 @@ if (fmodf(v2f_len(
 	(v2f){x,y} - (v2f){0,3}
 ), 5) <2) n1=n1 + 1;
 	n1 += v2d_len(p)>15? 10: 0;
+	if(hfvv != 0.0)
+		return hfvv / 8.0;
 	return n1;
 
 	float h = n1;
@@ -357,22 +404,19 @@ void mplayer_update(void){
 // 			b->pos[2] = De.finger[i].abs[1]*10;
 // 		}
 // 	}
-
+	static int pflymode=0;
+	if (dusek(DK_CAPSLOCK)) pflymode=(pflymode+1)%2;
 
 
 // player_update();
 	// if(dusek(DK_ESC)) { mouse_grab = (mouse_grab+1) %2;}
 	if(dusek('q')) { mouse_grab = (mouse_grab+1) %2;}
+
 	if(mouse_grab) dmouse_grab(1);
 	else dmouse_grab(0);
 
 	bool jump_input = 0;
 	bool slow_input = 0;
-
-	if(De.mouse.b1){
-		jump_input = 1;
-		De.mouse.b1 = 0;
-	}
 
 
 //player input
@@ -460,10 +504,10 @@ void mplayer_update(void){
 
 // dont normalize or clamp jump to rotation of input
 	v4f npdir = v3f_normalize(pdir); // circular clipping
-	float minx = min(-npdir[0], npdir[0]);
-	float maxx = max(-npdir[0], npdir[0]);
-	float minz = min(-npdir[2], npdir[2]);
-	float maxz = max(-npdir[2], npdir[2]);
+	float minx = MIN(-npdir[0], npdir[0]);
+	float maxx = MAX(-npdir[0], npdir[0]);
+	float minz = MIN(-npdir[2], npdir[2]);
+	float maxz = MAX(-npdir[2], npdir[2]);
 	pdir[0] = clamp(pdir[0], minx, maxx);
 	pdir[2] = clamp(pdir[2], minz, maxz);
 
@@ -471,7 +515,17 @@ void mplayer_update(void){
 //jump
 	float pjumpspeed = 0;
 	// if (dgetk(' ')) jump_input=true;
-	if (dusek(' ')) jump_input=true;
+
+	if(De.mouse.b1){
+		jump_input = 1;
+		De.mouse.b1 = 0;
+	}
+	if(pflymode){
+		if (dgetk(' ')) jump_input=true;
+	} else
+		if (dusek(' ')) jump_input=true;
+
+	if (dusek(DK_VOL_DOWN)) jump_input=true;
 	if (De.finger_click && (De.finger_click_pos[0]>.5)) {
 		De.finger_click = 0;
 		jump_input=true;
@@ -490,6 +544,7 @@ void mplayer_update(void){
 			Pdashing = Pdashing_frames;
 			// Pdashing=clamp(Pdashing, 0, 160);
 		}
+		// dsnd_play(G.phitsnd);
 	}
 
 	if (Pdashing) {
@@ -499,7 +554,7 @@ void mplayer_update(void){
 //gravity
 	else G.player.vel[1] += Grav;
 	if(pjumpspeed) //stop falling
-		G.player.vel[1] = max(0, G.player.vel[1]);
+		G.player.vel[1] = MAX(0, G.player.vel[1]);
 
 
 
@@ -533,7 +588,7 @@ void mplayer_update(void){
 
 	G.player.pos += G.player.vel * G.dt;
 // ground
-	float h = hmap_eval(G.hmap, G.player.pos[0], G.player.pos[2]);
+	float h = hmap_eval(G.hmap0, G.player.pos[0], G.player.pos[2]);
 
 	if(G.player.pos[1] <= h + G.player.rad+G.player.height){
 		G.player.pos[1] = h + G.player.rad+G.player.height;
@@ -555,7 +610,7 @@ void mplayer_update(void){
 	De.cam.fov = PI/3.0;
 //tps view
 	// v4f camtrans = {0,.5,-16,0};
-	v4f camtrans = {0,0.5,-2.6,0};
+	v4f camtrans = {0,1.75,-4.96,0};
 	camtrans /= 1.5;
 
 
@@ -564,7 +619,7 @@ void mplayer_update(void){
 	De.cam.pos = G.player.pos + v4f_mtmul(camtrans, m4f_rotation(-camrot));
 
 	// cam collides with hmap fixme todo
-	De.cam.pos[1] = max(De.cam.pos[1], hmap_eval(G.hmap, De.cam.pos[0],De.cam.pos[2])+.05);
+	De.cam.pos[1] = MAX(De.cam.pos[1], hmap_eval(G.hmap0, De.cam.pos[0],De.cam.pos[2])+.05);
 	// De.cam.pos = G.player.pos + v4f_mtmul(camtrans, m4f_rotation(-G.player.rot);
 	// De.cam.rot = G.player.rot * (v4f){0,1,0,0};
 	De.cam.rot = camrot;
@@ -582,39 +637,48 @@ void mplayer_update(void){
 
 
 // shoot
-	if(!Pgrounded) goto skip_shoot;
-	if(G.frame % 4) goto skip_shoot;
+	// if(!Pgrounded) goto skip_shoot;
+	if(G.frame % 2) goto skip_shoot;
 
 	float pe_len2 = v4f_len2(G.player.pos - G.enm[0].pos);
-
-	if(pe_len2 < 14*14){
+bool pshoot = false;
+	if (dgetk(DK_VOL_UP)) pshoot=true;
+	if(pe_len2 < 14*14 || pshoot){
 		bullet* b = bullets_add(G.player_bullets, &Pbul1);
 		b->pos = G.player.pos;
 		// b->pos[1] += .2;
 		// b->rad = 0.00;
-		// b->vel = (v4f){0,10,0,0} + (v4f_rand() -.5);
+		b->vel = (v4f){0,0,10,0} + (v4f_rand() -.5)*0;
+		b->vel = v4f_mmul(b->vel, m4f_rotation_y(G.player.rot[1]));
 	}
-	if(pe_len2 < 5*5 && Pgrounded>60){
+	if(pe_len2 < 5*5 /*&& Pgrounded>60*/ || pshoot){
+v4f vel = (v4f){0,0,10,0} + (v4f_rand() -.5)*0;
+vel = v4f_mmul(vel, m4f_rotation_y(G.player.rot[1]));
+
 	v4f tp = {.1,0,0,0};
 	tp = v4f_mmul(tp, m4f_rotation_y(G.player.rot[1]));
 		float s = sin(G.frame/4.f);
 		bullet* b = bullets_add(G.player_bullets, &Pbul1);
 		// b->vel = (v4f){10,0,10,0} * (v4f_rand() -.5);
 		// b->rad = 0.00;
-		b->col0[0]=255;
+		// b->col0[0]=255;
 		b->pos = G.player.pos + tp;
 		// b->vel = (v4f){s*5,0,0,0};
 		// b->vel = v4f_mmul(b->vel, m4f_rotation_y(G.player.rot[1]));
 		// b->vel[1] = 5;
+		b->vel = vel;
 
 		b = bullets_add(G.player_bullets, &Pbul1);
-		b->col0[0]=255;
+		// b->col0[0]=255;
 		// b->rad = 0.00;
 		b->pos = G.player.pos - tp;
+
+		b->vel = vel;
 		// b->vel = (v4f){-s*5,0,0,0};
 		// b->vel = v4f_mmul(b->vel, m4f_rotation_y(G.player.rot[1]));
 		// b->vel[1] = 5;
 	}
+
 skip_shoot:;
 //player trace
 	bullet* pt;

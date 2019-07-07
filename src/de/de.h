@@ -1,5 +1,8 @@
 #ifndef __DE_DE_H__
 #define __DE_DE_H__
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "libs.h"
 #include "common/common.h"
@@ -33,4 +36,9 @@ void de_quit(void);
 			De.game_loop_frame++         \
 		) /* your code here */
 
+
+
+#ifdef __cplusplus
+}
+#endif
 #endif

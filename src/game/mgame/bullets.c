@@ -297,14 +297,14 @@ void bullets_update(bullets* bs, float dt){ if(!bs) return;
 		bullets_upload(bs);
 	} else {
 		// skip
-		// if(bs->tlogic_done) bullets_upload(bs);
-		// bs->tlogic_done = false;
+		if(bs->tlogic_done) {bullets_upload(bs);
+			bs->tlogic_done = false;}
 		//wait
-		SDL_LockMutex(bs->bmutex);
 		// while (!bs->tlogic_done) ddelay(1);
-		bullets_upload(bs);
-		bs->tlogic_done = false;
-		SDL_UnlockMutex(bs->bmutex);
+		// SDL_LockMutex(bs->bmutex);
+		// bullets_upload(bs);
+		// bs->tlogic_done = false;
+		// SDL_UnlockMutex(bs->bmutex);
 	}
 }
 
@@ -327,6 +327,7 @@ void bullets_draw(bullets* bs){ if(!bs) return;
 		dfbo_bind(bs->shadow_map);
 		dclear_color((v4f){0,0,0,0});
 		dclear(0);
+		dclear_color(G.clear_color); // restore state
 		// dcam_update();
 	// dblend(0);
 
@@ -342,12 +343,12 @@ void bullets_draw(bullets* bs){ if(!bs) return;
 
 	// m4f m = m4f_model(-game.hmap->focus, (v4f){PI/2, 0, 0}, (v4f){1, 1, 1,0});
 		// if(game.hmap->mode & HMAP_FIXED){
-			// dshd_unif(bullet_shadow_shd, "hmap_focus", &G.hmap->ifocus);
-		// dshd_unif(bullet_shadow_shd, "hmap_focus", &G.hmap->focus);
+			// dshd_unif(bullet_shadow_shd, "hmap_focus", &G.hmap0->ifocus);
+		// dshd_unif(bullet_shadow_shd, "hmap_focus", &G.hmap0->focus);
 		// } else {
 			// dshd_unif(bullet_shadow_shd, "hmap_focus", &game.hmap->focus);
 		// }
-Hmap_shadow_focus = G.hmap->focus;
+Hmap_shadow_focus = G.hmap0->focus;
 		// dshd_unif(bullet_shadow_shd, "m", &m);
 		// dshd_unif(bullet_shadow_shd, "tex", &zero);
 		// dtex_bind(bullet_tex, 0);

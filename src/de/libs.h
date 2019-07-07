@@ -23,8 +23,8 @@ typedef unsigned short ushort;
 	#include <jni.h>
 	#include <GLES2/gl2.h>
 	#include <GLES2/gl2ext.h>
-	#include <GLES/gl.h>
-	#include <GLES/glext.h>
+	// #include <GLES/gl.h>
+	// #include <GLES/glext.h>
 	#include <android/log.h>
 	#include "../../de_android/jni/SDL2/include/SDL.h"
 	#include "../../de_android/jni/SDL2_image/SDL_image.h"
@@ -39,8 +39,8 @@ typedef unsigned short ushort;
 	#else
 		#include <GLES2/gl2.h>
 		#include <GLES2/gl2ext.h>
-		#include <GLES/gl.h>
-		#include <GLES/glext.h>
+		// #include <GLES/gl.h>
+		// #include <GLES/glext.h>
 		#include "android/glext.h"
 	#endif
 	#include <SDL2/SDL.h>

@@ -2,6 +2,9 @@
 #define __MGAME_HMAP_H__
 
 #include "../../de/de.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct hmap{
 	float* cache;
@@ -36,4 +39,8 @@ void hmap_draw(hmap*);
 
 float hmap_eval(hmap*, float x, float y); // approximates with cached heights
 
+
+#ifdef __cplusplus
+}
+#endif
 #endif

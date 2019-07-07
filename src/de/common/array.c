@@ -70,7 +70,7 @@ void darr_set(darr* a, uint slot, void* val){ DARR_VALIDATE(a);
 		darr_grow(a, f);
 	}
 	memcpy(a->data + slot * a->type, val, a->type);
-	a->len = max(a->len, slot);
+	a->len = MAX(a->len, slot);
 
 }
 

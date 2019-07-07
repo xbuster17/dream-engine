@@ -179,9 +179,9 @@ int dvao_set(dvao* vao, int attr_id, void* src, int target_vertex, int vertex_co
 	int offset = vao->vaps->vap[attr_id].offset;
 	darr* dst =  vao->vertex_data[vbo_index];
 
-	vao->len = max(vao->len, target_vertex + vertex_count);
-	vao->modified[vbo_index][0] = min(offset + target_vertex * stride, vao->modified[vbo_index][0]);
-	vao->modified[vbo_index][1] = max(attr_size + offset + (target_vertex + vertex_count) * stride, vao->modified[vbo_index][1]);
+	vao->len = MAX(vao->len, target_vertex + vertex_count);
+	vao->modified[vbo_index][0] = MIN(offset + target_vertex * stride, vao->modified[vbo_index][0]);
+	vao->modified[vbo_index][1] = MAX(attr_size + offset + (target_vertex + vertex_count) * stride, vao->modified[vbo_index][1]);
 
 	//slow
 	// for(int i = target_vertex; i < target_vertex+vertex_count; i++){
@@ -225,9 +225,9 @@ int dvao_setr(dvao* vao, int vbo_id,void* src, int target_vertex, int vertex_cou
 	memcpy(dst->data + target_vertex * stride, src, vertex_count * stride);
 
 
-	vao->len = max(vao->len, target_vertex + vertex_count);
-	vao->modified[vbo_id][0] = min(vao->modified[vbo_id][0], target_vertex*stride);
-	vao->modified[vbo_id][1] = max(vao->modified[vbo_id][1], (1+target_vertex+vertex_count)*stride);
+	vao->len = MAX(vao->len, target_vertex + vertex_count);
+	vao->modified[vbo_id][0] = MIN(vao->modified[vbo_id][0], target_vertex*stride);
+	vao->modified[vbo_id][1] = MAX(vao->modified[vbo_id][1], (1+target_vertex+vertex_count)*stride);
 
 	return 0;
 }

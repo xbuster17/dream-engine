@@ -40,8 +40,8 @@ def_bullet(glider){
 		in->buf = buf;
 	}
 	if (in->lifetime - in->frame < 6) in->col1[3]/=2;
-	// float h = G.hmap->f(in->pos[0], in->pos[2]);
-	float h = hmap_eval(G.hmap, in->pos[0], in->pos[2]);
+	// float h = G.hmap0->f(in->pos[0], in->pos[2]);
+	float h = hmap_eval(G.hmap0, in->pos[0], in->pos[2]);
 
 	// if(h + in->rad + G.player.height/2 > in->pos[1]){
 	if(h + G.player.height + in->rad > in->pos[1]){
@@ -86,12 +86,12 @@ def_bullet(playertrace){
 		*in = playertrace;
 		in->buf = buf;
 	}
-	// in->rad = max(in->rad-0.01, 0);
-	in->rad = max(in->rad - 0.01, 0.03);
+	// in->rad = MAX(in->rad-0.01, 0);
+	in->rad = MAX(in->rad - 0.01, 0.03);
 	in->vel += v4f_rand()-.5;
 	// in->vel *= 2;
-	// in->col0[3] = max(in->col0[3] - 256 / in->lifetime, 0);
-	// in->col1[3] = max(in->col1[3] - 256 / in->lifetime, 64);
+	// in->col0[3] = MAX(in->col0[3] - 256 / in->lifetime, 0);
+	// in->col1[3] = MAX(in->col1[3] - 256 / in->lifetime, 64);
 	// in->col1[3] -= 256 / in->lifetime ;
 }
 
@@ -114,7 +114,7 @@ def_bullet(playeraura){
 		in->buf = buf;
 	}
 	in->rad*=2-in->frame;
-	// in->rad = max(in->rad-0.01, 0);
+	// in->rad = MAX(in->rad-0.01, 0);
 }
 
 
@@ -155,9 +155,9 @@ def_bullet(joe_spark){
 		// b->col1 = playertrace.col1;
 		in->frame = in->lifetime+1;
 	}
-	// if(G.hmap->f(in->pos[0], in->pos[2]) >= in->pos[1] - in->rad) {in->vel[1]*=-1;in->pos+=in->vel*0.016f;/*in->acc*=0;*/ in->lifetime += 100;}
+	// if(G.hmap0->f(in->pos[0], in->pos[2]) >= in->pos[1] - in->rad) {in->vel[1]*=-1;in->pos+=in->vel*0.016f;/*in->acc*=0;*/ in->lifetime += 100;}
 	// if(in->pos[1] < -2 ) {in->vel[1]*=-1;in->pos[1]=-2;/*in->acc*=0;*/ in->lifetime += 100;}
-	// in->rad = max(in->rad-.05, 0);
+	// in->rad = MAX(in->rad-.05, 0);
 	// in->rad = lerp(joe_spark.rad, 0, in->frame*1.f / in->lifetime );
 }
 
@@ -268,31 +268,32 @@ def_bullet(Pbul1){
 		in->buf = buf;
 	}
 
-	// in->rad = min(in->rad+0.01, 0.06);
+	// in->rad = MIN(in->rad+0.01, 0.06);
 	float dist2pl = v3f_len2(G.player.pos - in->pos);
 	if(dist2pl<0.1){
 		in->rad=.01;
 		in->col1[3] = 255;
 	} else {
-		in->rad = min(dist2pl/25.0+0.01, 0.06);
-		in->col1[3] = min(dist2pl*25, 255);
+		in->rad = MIN(dist2pl/25.0+0.01, 0.06);
+		in->col1[3] = MIN(dist2pl*25, 255);
 	}
 
 	if (v3f_len2(G.enm[0].pos - in->pos) < .1){//hit enemy
 		in->frame=in->lifetime+1;
 		G.enm[0].hp -= in->dmg;
 
-		// if(in->col0[2]){
-		// 	bullet* b = bullets_add(in->buf, &Pbul1_hit);
-		// 	b->pos = in->pos;
-		// }
+		if(in->col0[2]){
+			bullet* b = bullets_add(in->buf, &Pbul1_hit);
+			b->pos = in->pos;
+		}
 	}
 
-	// float h = G.hmap->f(in->pos[0], in->pos[2]);
-	// float h = hmap_eval(G.hmap, in->pos[0], in->pos[2]);
-	in->vel = v4f_normalize(G.enm[0].pos - in->pos) * 4;
+	// float h = G.hmap0->f(in->pos[0], in->pos[2]);
+	// float h = hmap_eval(G.hmap0, in->pos[0], in->pos[2]);
+	//track enemy
+	// in->vel = v4f_normalize(G.enm[0].pos - in->pos) * 4;
 
-	float h = hmap_eval(G.hmap, in->pos[0]+in->vel[0]*G.dt, in->pos[2]+in->vel[2]*G.dt) - in->vel[1]*G.dt;
+	float h = hmap_eval(G.hmap0, in->pos[0]+in->vel[0]*G.dt, in->pos[2]+in->vel[2]*G.dt) - in->vel[1]*G.dt;
 	// h += v4f_len(in->vel)*G.dt;
 //	// if(in->pos[1] < h) in->frame += in->lifetime+1;
 //	if(in->pos[1] < h) in->rad = 0;
@@ -301,7 +302,7 @@ def_bullet(Pbul1){
 //		in->col0[2] -= 10;
 //	else in->vel = v4f_normalize(G.enm[0].pos - in->pos) * 10;
 
-	in->pos[1] = max(h+in->rad, in->pos[1]);
+	in->pos[1] = MAX(h+in->rad, in->pos[1]);
 
 
 }
@@ -315,23 +316,23 @@ def_bullet(Pbul1_hit){
 		Pbul1_hit.pos = in->pos;
 		Pbul1_hit.vel = v4f_0;
 		Pbul1_hit.acc = v4f_0;//(v4f){0,-9,0,1};
-		Pbul1_hit.col0 = (v4c){0,255,0,5};
+		Pbul1_hit.col0 = (v4c){0,0,255,5};
 		Pbul1_hit.col1 = (v4c){255,255,255,5};
 		// Pbul1_hit.col1 = v4c_0;
-		Pbul1_hit.rad = .5;
+		Pbul1_hit.rad = .25;
 		Pbul1_hit.dmg = 1;
 		Pbul1_hit.tvel = 50.0;
 		Pbul1_hit.tacc = 1000.0;
-		Pbul1_hit.lifetime = 1;
+		Pbul1_hit.lifetime = 3;
 		Pbul1_hit.frame = 0;
 		bullets* buf = in->buf;
 		*in = Pbul1_hit;
 		in->buf = buf;
 	}
-	in->col0 = v4c_rand();
+	// in->col0 = v4c_rand();
 	// in->rad -= .2;
-	in->col0[3] = 55;
-	in->col1[3] = 55;
-	in->col0[0] = 255;
+	in->col0[3] = 55/(in->frame+1);
+	in->col1[3] = 55/(in->frame+1);
+	// in->col0[0] = 255;
 
 }

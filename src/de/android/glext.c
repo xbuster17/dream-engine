@@ -26,13 +26,24 @@ void dandroid_glext_init(void){
 
 	_inited = 1;
 
-	if(De.gles_v2)
-		_libhandle = dlopen( "libGLESv2.so", RTLD_LAZY | RTLD_GLOBAL );
-	else
+	// if(De.gles_v2)
+	_libhandle = dlopen( "libGLESv2.so", RTLD_LAZY | RTLD_GLOBAL );
+	// else
+	if(!_libhandle)
 		_libhandle = dlopen( "libGLESv3.so", RTLD_LAZY | RTLD_GLOBAL );
 
 	if(!_libhandle) DE_LOGE("libGLESv2/3.so not found!");
-	//VAO
+//VAO
+#ifndef ANDROID
+	glBindVertexArray = (PFNGLBINDVERTEXARRAYOESPROC)dlsym( _libhandle,
+		"glBindVertexArray");
+	glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSOESPROC)dlsym( _libhandle,
+		"glDeleteVertexArrays");
+	glGenVertexArrays = (PFNGLGENVERTEXARRAYSOESPROC)dlsym( _libhandle,
+		"glGenVertexArrays");
+	glIsVertexArray = (PFNGLISVERTEXARRAYOESPROC)dlsym(_libhandle,
+		"glIsVertexArray");
+#else
 	glBindVertexArray = (PFNGLBINDVERTEXARRAYOESPROC)dlsym( _libhandle,
 		"glBindVertexArrayOES");
 	glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSOESPROC)dlsym( _libhandle,
@@ -41,7 +52,7 @@ void dandroid_glext_init(void){
 		"glGenVertexArraysOES");
 	glIsVertexArray = (PFNGLISVERTEXARRAYOESPROC)dlsym(_libhandle,
 		"glIsVertexArrayOES");
-
+#endif
 
 	if(!glBindVertexArray || !glDeleteVertexArrays || !glGenVertexArrays || !glIsVertexArray)
 		De.glext_has_vao = 0;

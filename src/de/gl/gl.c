@@ -85,15 +85,15 @@ void dblend(bool enable){
 
 
 
-void dalpha( bool b, GLenum fnc, GLclampf ref ){
-	if(fnc == 0) fnc = DE_GL_DEFAULT_ALPHA_FUNC;
-	if(b){
-		glEnable(GL_ALPHA_TEST);
-		glAlphaFunc( fnc, ref );
-	}
-	else
-		glDisable(GL_ALPHA_TEST);
-}
+// void dalpha( bool b, GLenum fnc, GLclampf ref ){
+	// if(fnc == 0) fnc = DE_GL_DEFAULT_ALPHA_FUNC;
+	// if(b){
+	// 	glEnable(GL_ALPHA_TEST);
+	// 	glAlphaFunc( fnc, ref );
+	// }
+	// else
+	// 	glDisable(GL_ALPHA_TEST);
+// }
 
 
 

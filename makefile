@@ -1,6 +1,6 @@
 .SILENT:
 EXEC = de
-MAIN = ./src/main.c
+MAIN = ./src/main.cpp
 GAME_DIR = src/game
 
 
@@ -42,8 +42,8 @@ GAME_OBJ = $(subst .c,.$(CROSSOBJ)o,$(GAME_SRC))
 all: @notify $(ENGINE_SRC) $(GAME_SRC) $(MAIN) $(EXEC)
 
 $(EXEC): $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ)
-	$(call color_green,"$(CC) $(EXEC)")
-	$(CC) $(LFLAG) $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ) $(LIBS)  -o $(EXEC)
+	$(call color_green,"$(CPPC) $(EXEC)")
+	$(CPPC) $(LPPFLAG) $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ) $(LIBS)  -o $(EXEC)
 
 %.$(CROSSOBJ)o: %.c %.h
 	$(call color_green,"$(CC) $@")

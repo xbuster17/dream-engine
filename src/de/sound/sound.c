@@ -8,6 +8,7 @@ struct Dsnd_init_conf Dsnd_init_conf = {
 	.bufsize  = 1024,
 	.channels  = 2,
 	.format  = AUDIO_F32SYS
+	// .format  = AUDIO_S16SYS
 };
 
 // static int init_mix_channels = 512;
@@ -142,6 +143,34 @@ int dsnd_playf(dsnd* snd, int loops, int fade){ if(!snd) return -1;
 dsnd* dsnd_new(void* data, Uint32 len){ if(!data) return NULL;
 	return Mix_QuickLoad_RAW(data, len);
 }
+// TODO
+// dsnd* dsnd_newf(Uint16 src_format, void* data, Uint32 len, int channels);
+
+// void* dsnd_resample(Uint16 dstf, Uint16 srcf, void* data, Uint32 len);
+
+// dsnd* dsnd_newf(Uint16 f, void* data, Uint32 len, int ch){ if(!data) return NULL;
+// 	void* rd=data;
+// 	int len=len;
+// 	if(Dsnd_init_conf.format != f){
+// 		void* rd = dsnd_resample(Dsnd_init_conf.format, f, data, len);
+// 		// data = dsnd_resample(Dsnd_init_conf.format, f, data, len);
+// 	}
+
+// 	return Mix_QuickLoad_RAW(rd, len);
+// }
+
+// void* dsnd_resample(Uint16 dstf, Uint16 srcf, void* data, Uint32 len){
+// 	void* ret=malloc(ts*ch*len);
+// 	switch(dstf){
+// 		case AUDIO_S8:break;
+// 		case AUDIO_U8:break;
+// 		case AUDIO_S16SYS:break;
+// 		case AUDIO_U16SYS:break;
+// 		case AUDIO_U32SYS:break;
+// 		case AUDIO_S32SYS:break;
+// 		case AUDIO_F32SYS:break;
+// 	}
+// }
 
 
 

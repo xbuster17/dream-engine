@@ -1,6 +1,9 @@
 #ifndef __MGAME_H__
 #define __MGAME_H__
 #include "../../de/de.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // #define num_enemy_bullets 10922
 #define num_enemy_bullets 4096
@@ -35,7 +38,7 @@ extern struct game {
 	bullets* enemy_bullets;
 	bullets* player_bullets;
 
-	hmap* hmap;
+	hmap* hmap0;
 	hmap* hmap1;
 
 	struct player player;
@@ -52,8 +55,11 @@ extern struct game {
 	struct lvl* curr_lvl;
 	dsnd* phitsnd;
 	float* screensmp;
-} G;
-
+} Game;
+#define G Game
 void mgame_main(void);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

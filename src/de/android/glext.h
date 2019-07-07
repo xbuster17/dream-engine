@@ -10,8 +10,8 @@ extern PFNGLBINDVERTEXARRAYOESPROC     glBindVertexArray;
 extern PFNGLDELETEVERTEXARRAYSOESPROC  glDeleteVertexArrays;
 extern PFNGLGENVERTEXARRAYSOESPROC     glGenVertexArrays;
 extern PFNGLISVERTEXARRAYOESPROC       glIsVertexArray;
-#endif
 
+#endif
 void dandroid_glext_init(void);
 void dandroid_glext_quit(void);
 

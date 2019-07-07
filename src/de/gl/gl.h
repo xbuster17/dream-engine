@@ -22,7 +22,7 @@ void dcullf(char c); // 'f'=front, 'b'=back, '\0'=off
 void dviewport(int x, int y);
 
 void dblend(bool enable);
-void dalpha(bool enable, GLenum function, GLclampf reference);
+// void dalpha(bool enable, GLenum function, GLclampf reference);
 void ddepth(bool enable, GLenum func);
 
 

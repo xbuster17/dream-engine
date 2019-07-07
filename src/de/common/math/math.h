@@ -12,16 +12,19 @@
 #define DE_PI 3.14159265359
 #endif
 
-#define min(a,b) ((a) < (b) ? (a) : (b))
-#define max(a,b) ((a) > (b) ? (a) : (b))
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define lerp(a,b,w) ( ( (a)*( 1-(w) ) )+( (b)*(w) ) )
 #define clamp(in,min,max)\
 	(((in)>=(max))?(max):(((in)<=(min))?(min):(in)))
 
-// maps variable x from range[a,b] to [c,d]
-#define mapval(x, a,b, c,d) /*maps variable x from range[a,b] to [c,d]*/\
+// linear mapping of value x from range[a,b] to [c,d], without clamping
+#define MAPVAL(x, a,b, c,d) \
 	( (((x) - (a)) / ((b) - (a))) * ((d) - (c)) + (c) )
+#define MAPVAL_ROUND(x, a,b, c,d)\
+	(floor(mapval((double)x,(double)a,(double)b,(double)c,(double)d)+0.5))
+
 
 #define deg2rad(deg) (((deg)*PI)/180.f)
 #define rad2deg(rad) (((rad)*180.f)/PI)

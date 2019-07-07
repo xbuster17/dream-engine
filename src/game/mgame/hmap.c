@@ -36,9 +36,10 @@ hmap* hmap_new(int xres, int yres, float(*func)(float x, float y), enum hmap_mod
 				hmap_texpx[i*tres + j] = v4c_0;
 				// hmap_texpx[i*tres + j] = (v4c){.02*255, .08*255, .202*255, 255};
 				// srand(i/(tres/di) + (j/(tres/di)) *100 );
-				hmap_texpx[i*tres + j] = v4c_rand()>>4;
+				// hmap_texpx[i*tres + j] = v4c_rand()>>4;
 				// hmap_texpx[i*tres + j] = colors[rand()%num_colors];
-				// if(i < 1 || j < 1 || i > tres-1 || j > tres-1 || abs(i - (tres-j))<1 )
+				if(i < 1 || j < 1 || i > tres-1 || j > tres-1 || abs(i - (tres-j))<1 )
+				hmap_texpx[i*tres + j] = v4c_rand();
 					// hmap_texpx[i*tres + j] = (v4c){255,255,255,255};
 				// if(!(i%(tres/(di))) || !(j%(tres/(di))))
 				// if(!(i%(tres/di)) || !(j%(tres/di)) || abs(i%(tres/di) - (tres/di-j%(tres/di)))<1)
@@ -61,8 +62,7 @@ hmap* hmap_new(int xres, int yres, float(*func)(float x, float y), enum hmap_mod
 		// dtex_filter(hmap_tex, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
 		// dtex_filter(hmap_tex, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
 
-	}
-
+	} // if not inited
 	hmap* ret = malloc(sizeof(hmap));
 	ret->cache = malloc(sizeof(float) * xres*yres);
 	memset(ret->cache, 0, sizeof(float) * xres*yres);
@@ -130,8 +130,13 @@ hmap* hmap_new(int xres, int yres, float(*func)(float x, float y), enum hmap_mod
 
 
 
-void hmap_free(hmap* hmap){// todo
+void hmap_free(hmap* hm){ if(!hm) return;// todo
+	dvao_free(hm->vao);
+	SDL_DestroyMutex(hm->cache_mutex);
+	free(hm->cache);
+	free(hm);
 }
+
 
 
 float hmap_eval(hmap* hm, float x, float y){ if(!hm) return 0;
@@ -141,11 +146,11 @@ float hmap_eval(hmap* hm, float x, float y){ if(!hm) return 0;
 // hmap->cache[ i*yres + j ] = func(i - xres/2 + focus[0], j - xres/2 + focus[2]);
 	// x= x<0? x+1: x;
 	// y= y<0? y+1: y;
-SDL_LockMutex(hm->cache_mutex);
 	int i = clamp( floor(x) - hm->ifocus[0] + hm->res/2, 0, hm->res-1 );
 	int j = clamp( floor(y) - hm->ifocus[2] + hm->res/2, 0, hm->res-1 );
 	int i1 = i == hm->res-1 ? i : i + 1;
 	int j1 = j == hm->res-1 ? j : j + 1;
+SDL_LockMutex(hm->cache_mutex);
 	float h0 = hm->cache[i * hm->res + j];
 	float h2 = hm->cache[i * hm->res + j1];
 	float h1 = hm->cache[i1 * hm->res + j];
@@ -207,6 +212,7 @@ void hmap_update(hmap* hmap, v4f infocus){
 	// hmap->m = m4f_model(v4f_0, v4f_0, hmap->sca);
 	// hmap->n = m4f_timodel(hmap->m);
 	// _hmap_MVP = m4f_mul(hmap->m, De.cam.vp);
+
 	if((!hmap->generated) || (hmap->mode & HMAP_DYNAMIC)){
 
 SDL_LockMutex(hmap->cache_mutex);
@@ -241,7 +247,7 @@ SDL_LockMutex(hmap->cache_mutex);
 			}
 		}
 SDL_UnlockMutex(hmap->cache_mutex);
-srand(0);
+
 // generate vertices
 		for (int i = 0; i < xres; ++i){
 			for (int j = 0; j < yres; ++j){
@@ -279,7 +285,7 @@ srand(0);
 		dvao_setr(hmap->vao, 1, hmap_nbuf, 0, xres*yres*6);
 		dvao_update(hmap->vao);
 	}
-		// void* hmap_verts[] = {hmap_vbuf, hmap_nbuf};
+	// void* hmap_verts[] = {hmap_vbuf, hmap_nbuf};
 	// hmap_once = 1;
 	hmap->generated = true;
 
@@ -310,7 +316,7 @@ srand(0);
 
 
 void hmap_draw(hmap* hmap){
-	dclear_color(G.clear_color);
+	// dclear_color(G.clear_color);
 	dcullf('b');
 	ddepth(1,0);
 	// dcullf(0);
@@ -404,33 +410,32 @@ char* hmap_vshdsrc = DE_SHD_HEADERV QUOTE(
 	vec4 diff = vec4(0.95, 0.94, 0.95, 1.0);
 	// vec4 diff = vec4(1.0, 1.0, 1.0, 1.0);
 	// float shin = 16.0;
-
-	vec4 light(
+	\nvec4 light(
 		vec4 vpos, vec4 vnor, mat4 N,
 		vec4 lpos, vec4 lcol, float lpow,
 		vec4 diff
-	){
+	){ \n\t
 	// vec4 light(
 	// 	vec4 eye, vec4 vpos, vec4 vnor, mat4 M, mat4 N,
 	// 	vec4 lpos, vec4 lcol, float lpow,
 	// 	vec4 spec, vec4 diff, float shininess
 	// ){
-	\t    vec4 inor = normalize(N * vnor);                                 \n
+	    vec4 inor = normalize(N * vnor);                                 \n\t
 	// \t    vec4 lspec = vec4(0.0, 0.0, 0.0, 1.0);                           \n
 	// \t    vec4 v = normalize( eye - M * vpos);                             \n
-	\t    vec4 ldirv = lpos - vpos;                                        \n
-	\t    vec4 ldir = normalize(ldirv);                                    \n
+	    vec4 ldirv = lpos - vpos;                                        \n\t
+	    vec4 ldir = normalize(ldirv);                                    \n\t
 	// \t    vec4 r = reflect(-ldir, inor);                                   \n
-	\t    float cosTheta = max(dot(ldir, inor), 0.0);                      \n
-	\t    float dist2 = pow(dot(ldirv, ldirv), .5);                         \n
-	\t    vec4 ldiff = diff * lcol * lpow * cosTheta/dist2;              \n
+	    float cosTheta = max(dot(ldir, inor), 0.0);                      \n\t
+	    float dist2 = pow(dot(ldirv, ldirv), .5);                         \n\t
+	    vec4 ldiff = diff * lcol * lpow * cosTheta/dist2;              \n\t
 	// \t    if(cosTheta > 0.0)                                               \n
 	// \t\t        lspec = ( spec  *  lcol  *  lpow  *                        \n
 	// \t\t        lspec = clamp(cosTheta*1000.0, 0.0, 1.0) * ( spec  *  lcol  *  lpow  *                        \n
 	// \t\t\t            pow(max(dot(r,v), 0.0),  shininess ))/dist2;  \n
 	// \t    return ldiff + lspec ;                                            \n
-	\t    return ldiff;                                            \n
-	}
+	    return ldiff;                                            \n
+	}\n
 
 	void main(void){
 		// vec4 lpos = ppos;
@@ -463,8 +468,11 @@ vec4 pos = ap;
 
 
 		vcol *= light(vp, vn, N, ppos+vec4(0.0,0.75,0.0,0.0), vec4(0.2,0.2,0.98,0.0), lpow*1.0, diff)
-		 +     light(vp, vn, N, lpos+vec4(0.0,1.5,0.0,0.0), lcol, lpow*1.0, diff);
-		vcol += vec4(.39,.28,.21, 0.0);
+		 +      light(vp, vn, N, lpos+vec4(0.0,1.5,0.0,0.0), lcol, lpow*1.0, diff);
+//ambient
+		vcol += vec4(.39,.28,.21, 0.0) * 1.5;
+		if (ap.y<.0)
+			vcol *= vec4(.59,.58,.71, 1.0);
 		vcol = pow(vcol, vec4(2.5,2.5,2.5,1.0));
 
 
@@ -589,7 +597,6 @@ char* hmap_fshdsrc = DE_SHD_HEADERF QUOTE(
 		#endif //shadow
 		// vec4 tcol = texture2D(tex, (vp.xz/*-focus.xz*/));
 
-
 		// vec4 tcol = col;
 		// float dist = length(vp.xz-eye.xz);
 		// float fogfactor = (31.0 - dist)/(31.0-20.0); // player center 64 block fog dist
@@ -598,7 +605,8 @@ char* hmap_fshdsrc = DE_SHD_HEADERF QUOTE(
 		// float fogfactor = (31.0 - dist)/(31.0-20.0); // player center 64 block fog dist
 		// float fogfactor = (40.0 - dist)/(40.0-30.0); // transposed focus
 		float dist = length(vp.xz-ppos.xz);
-		float fogfactor = (focus.w/2.5 - dist)/(focus.w/2.5-focus.w/3.0); // focus fog
+		// float fogfactor = (focus.w/2.5 - dist)/(focus.w/2.5-focus.w/3.0); // focus fog
+		float fogfactor = (focus.w/2.1 - dist)/(focus.w/2.1-focus.w/3.0); // focus fog
 		fogfactor = clamp( fogfactor, 0.0, 1.0);
 
 		// if (fogfactor<0.1) discard;
