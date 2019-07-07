@@ -3,7 +3,6 @@
 #include "game/mgame/mgame.h"
 
 #include "game/ex/shd-metaball.h"
-#include "game/golf/golf.h"
 
 void ex_shd_metaball(void);
 

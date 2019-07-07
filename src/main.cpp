@@ -3,7 +3,6 @@
 #include "game/mgame/mgame.h"
 
 #include "game/ex/shd-metaball.h"
-#include "game/golf/golf.h"
 
 int SDL_main(int argc, char**argv){ (void)argv, (void)argc;
 	// Dsnd_init_conf.bufsize = 128;
