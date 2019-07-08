@@ -3,15 +3,15 @@ EXEC = de
 MAIN = ./src/main.cpp
 GAME_DIR = src/game
 
-
 CCFLAG = -std=gnu99 -g -O3 -Wall -Wextra -Wno-psabi -ffast-math -funroll-loops -D _DEFAULT_SOURCE
 CPPCFLAG = -std=gnu++11 -Wall -Wextra -g -O3
-LFLAG = $(CCFLAG)
+LFLAG = $(CPPCFLAG)
+LCC=$(CPPC)
 
 CC = $(CROSS)gcc
+CPPC = $(CROSS)g++
 PKG_CONFIG = $(CROSS)pkg-config
 SDL2_CONFIG = $(CROSS)sdl2-config
-CPPC = $(CROSS)g++
 
 # glew gl SDL2 SDL2_mixer SDL2_net SDL2_image SDL2_ttf libpng
     # -DGLEW_STATIC
@@ -42,8 +42,8 @@ GAME_OBJ = $(subst .c,.$(CROSSOBJ)o,$(GAME_SRC))
 all: @notify $(ENGINE_SRC) $(GAME_SRC) $(MAIN) $(EXEC)
 
 $(EXEC): $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ)
-	$(call color_green,"$(CPPC) $(EXEC)")
-	$(CPPC) $(LPPFLAG) $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ) $(LIBS)  -o $(EXEC)
+	$(call color_green,"$(LCC) $(EXEC)")
+	$(LCC) $(LFLAG) $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ) $(LIBS)  -o $(EXEC)
 
 %.$(CROSSOBJ)o: %.c %.h
 	$(call color_green,"$(CC) $@")
