@@ -4,14 +4,14 @@
 bullet bullet_0 = {
 	pos:{0,0,0,0}, col0:{0,0,0,0}, col1:{0,0,0,0},
 	vel:{0,0,0,0}, acc:{0,0,0,0}, force:{0,0,0,0},
-	rad:0, tvel:0, tacc:0, lifetime:0, dmg:0,
+	rad:0, tvel:0, tacc:0, lifetime:2, dmg:0,
 	inited:0, frame:0,
 	run: NULL
 };
 bullet bullet_default = {
 	pos:{0,0,0,0}, col0:{255,0,0,255}, col1:{255,255,255,255},
 	vel:{0,0,0,0}, acc:{0,-9,0,0}, force:{0,0,0,0},
-	rad:0, tvel:50, tacc:50, lifetime:0, dmg:0,
+	rad:0, tvel:50, tacc:50, lifetime:2, dmg:0,
 	inited:0, frame:0,
 	run: NULL
 };
@@ -24,13 +24,13 @@ bullet bullet_default = {
 def_bullet(glider){
 	if(!in->inited){
 		glider.inited = true;
-		// glider.pos = in->pos;
-		// glider.vel = in->vel;
-		// glider.acc = in->acc;
-		// glider.col0 = (v4c){255,0,0,255};
-		// glider.col1 = (v4c){255,255,255,255};
-		// glider.rad = in->rad;
-		// glider.dmg = 1;
+		glider.pos = in->pos;
+		glider.vel = in->vel;
+		glider.acc = in->acc;
+		glider.col0 = (v4c){255,0,0,255};
+		glider.col1 = (v4c){255,255,255,255};
+		glider.rad = in->rad;
+		glider.dmg = 1;
 		glider.tvel = 100.0;
 		glider.tacc = 100.0;
 		glider.lifetime = 60*1000;
@@ -41,50 +41,76 @@ def_bullet(glider){
 	}
 	if (in->lifetime - in->frame < 6) in->col1[3]/=2;
 	// float h = G.hmap0->f(in->pos[0], in->pos[2]);
-	float h = hmap_eval(G.hmap0, in->pos[0], in->pos[2]);
+	float nx,ny,nz;
+	float h = hmap_evald(G.hmap0, in->pos[0], in->pos[2], &nx,&ny,&nz);
 
 	// if(h + in->rad + G.player.height/2 > in->pos[1]){
 	if(h + G.player.height + in->rad > in->pos[1]){
 		// in->pos[1] = h + in->rad + G.player.height/2;
 		in->pos[1] = h + G.player.height + in->rad;
 		in->vel[1] = 0;
+
+		     if(nx > .15) {if(nx > .85 && in->vel[0]<0) {in->vel[0]*=-1;} in->vel[0] += nx * G.dt;} //else in->acc[0]=0;
+		else if(nx <-.15) {if(nx <-.85 && in->vel[0]>0) {in->vel[0]*=-1;} in->vel[0] += nx * G.dt;} //else in->acc[0]=0;
+		     if(nz > .15) {if(nz > .85 && in->vel[2]<0) {in->vel[2]*=-1;} in->vel[2] += nz * G.dt;} //else in->acc[2]=0;
+		else if(nz <-.15) {if(nz <-.85 && in->vel[2]>0) {in->vel[2]*=-1;} in->vel[2] += nz * G.dt;} //else in->acc[2]=0;
+		// else in->vel[1] = 0;
 	} else {
 		// in->vel[1] = in->grav;
 	}
-// player collision
-	if(v3f_len( in->pos - G.player.pos ) < G.player.rad /*.2/4*/ + in->rad*0.5 ){
-		in->col0 *= 0;
-		bullet* b = bullets_add(in->buf, &playertrace);
-		b->vel = in->vel;
-		// b->vel[1] = -in->vel[1]/10.0;
-		b->vel[1] = 0;
-		b->acc[1] = 1;
-		b->pos = in->pos;
-		b->frame = -2000;
-		// b->col1 = playertrace.col1;
-		in->frame = in->lifetime+1;
-		dsnd_play(G.phitsnd);
-	}
+// player proximity
+	if(v3f_len( in->pos - G.player.pos ) < .2 ){
+		in->col1=v3c_rand();
 
+		// hit 
+		if(v3f_len( in->pos - G.player.pos ) < G.player.rad /*.2/4*/ + in->rad*0.5 ){
+			in->col0 *= 0;
+			bullet* b = bullets_add(in->buf, &playertrace);
+			// bullet* b = bullets_add(in->buf, in);
+			b->run=playertrace.run;
+			b->pos = in->pos;
+			b->vel = in->vel;
+			b->rad = .1;
+			b->vel[1] = -in->vel[1]/10.0;
+			b->vel[1] = 0;
+			b->acc[1] = 0;
+			b->frame = -2000;
+			// b->col1 = playertrace.col1;
+			in->frame = in->lifetime+1;
+			bullet_clear(in);
+			dsnd_play(G.phitsnd);
+			G.main_fbo_scale=16;
+		}
+	}
+	else{	
+		in->col1[0]=255;
+		in->col1[1]=255;
+		in->col1[2]=255;
+		in->col1[3]=255;
+	}
 }
 
 def_bullet(playertrace){
 	if(!in->inited){
 		playertrace.inited = true;
-		playertrace.pos = in->pos;
-		playertrace.vel = in->vel;
-		playertrace.acc = in->acc;
-		playertrace.col0 = (v4c){0,0,255,64};
-		playertrace.col1 = (v4c){64,255,255,255};
-		playertrace.rad = .2;
-		playertrace.dmg = 1;
+		// playertrace.pos = in->pos;
+		// playertrace.vel = in->vel;
+		// playertrace.acc = in->acc;
+		// playertrace.col0 = (v4c){0,0,255,64};
+		// playertrace.col1 = (v4c){64,255,255,255};
+		// playertrace.rad = .2;
+		// playertrace.dmg = 1;
 		playertrace.tvel = 500.0;
 		playertrace.tacc = 5.0;
 		playertrace.lifetime = 10;
-		playertrace.frame = 0;
-		bullets* buf = in->buf;
-		*in = playertrace;
-		in->buf = buf;
+		// playertrace.frame = 0;
+		// bullets* buf = in->buf;
+		// *in = playertrace;
+		// in->buf = buf;
+		in->lifetime = 10;
+		in->frame = 0;
+		in->tacc = 5;
+		in->tvel = 500;
 	}
 	// in->rad = MAX(in->rad-0.01, 0);
 	in->rad = MAX(in->rad - 0.01, 0.03);
@@ -113,15 +139,14 @@ def_bullet(playeraura){
 		*in = playeraura;
 		in->buf = buf;
 	}
-	in->rad*=2-in->frame;
+	in->rad*=.9;
+	// in->rad*=2-in->frame;
 	// in->rad = MAX(in->rad-0.01, 0);
 }
 
 
 
 
-// bgen0_fnc
-// bgen0_
 def_bullet(joe_spark){
 	if(!in->inited){
 		joe_spark.inited = true;
@@ -267,33 +292,36 @@ def_bullet(Pbul1){
 		*in = Pbul1;
 		in->buf = buf;
 	}
-
 	// in->rad = MIN(in->rad+0.01, 0.06);
+	in->col0[3] = 5;
 	float dist2pl = v3f_len2(G.player.pos - in->pos);
 	if(dist2pl<0.1){
 		in->rad=.01;
-		in->col1[3] = 255;
+		in->col1[3] = 5;
 	} else {
 		in->rad = MIN(dist2pl/25.0+0.01, 0.06);
-		in->col1[3] = MIN(dist2pl*25, 255);
+		in->col1[3] = MIN(dist2pl*25, 5);
 	}
 
-	if (v3f_len2(G.enm[0].pos - in->pos) < .1){//hit enemy
+	//hit enemy
+	if (v3f_len2(G.enm[0].pos - in->pos) < .075){
 		in->frame=in->lifetime+1;
 		G.enm[0].hp -= in->dmg;
 
-		if(in->col0[2]){
+		// if(in->col0[2]){
 			bullet* b = bullets_add(in->buf, &Pbul1_hit);
 			b->pos = in->pos;
-		}
+		// }
 	}
 
 	// float h = G.hmap0->f(in->pos[0], in->pos[2]);
 	// float h = hmap_eval(G.hmap0, in->pos[0], in->pos[2]);
 	//track enemy
 	// in->vel = v4f_normalize(G.enm[0].pos - in->pos) * 4;
-
-	float h = hmap_eval(G.hmap0, in->pos[0]+in->vel[0]*G.dt, in->pos[2]+in->vel[2]*G.dt) - in->vel[1]*G.dt;
+	in->vel = (in->vel*39+v4f_normalize(G.enm[0].pos - in->pos)*3)/40;
+	// in->acc = v4f_normalize((G.enm[0].pos - in->pos))*1000.f /v3f_len2(G.enm[0].pos - in->pos);
+	float nx,nz;
+	float h = hmap_evald(G.hmap0, in->pos[0]+in->vel[0]*G.dt, in->pos[2]+in->vel[2]*G.dt,&nx,NULL,&nz) - in->vel[1]*G.dt;
 	// h += v4f_len(in->vel)*G.dt;
 //	// if(in->pos[1] < h) in->frame += in->lifetime+1;
 //	if(in->pos[1] < h) in->rad = 0;
@@ -301,9 +329,24 @@ def_bullet(Pbul1){
 //	if(in->frame <= 25)
 //		in->col0[2] -= 10;
 //	else in->vel = v4f_normalize(G.enm[0].pos - in->pos) * 10;
+	
+	// in->pos[1] = MAX(h+in->rad, in->pos[1]);
+	if(h + in->rad > in->pos[1]){
+		in->pos[1] = h+in->rad;
+		if(nx > .75) goto delete_bullet;//in->vel[0] += nx /** G.dt*/; //else in->acc[0]=0;
+		if(nx <-.75) goto delete_bullet;//in->vel[0] += nx /** G.dt*/; //else in->acc[0]=0;
+		if(nz > .75) goto delete_bullet;//in->vel[2] += nz /** G.dt*/; //else in->acc[2]=0;
+		if(nz <-.75) goto delete_bullet;//in->vel[2] += nz /** G.dt*/; //else in->acc[2]=0;
+	}
+	return;
+	delete_bullet:;
+		in->frame=in->lifetime+1;
+		// G.enm[0].hp -= in->dmg;
 
-	in->pos[1] = MAX(h+in->rad, in->pos[1]);
-
+		// if(in->col0[2]){
+			bullet* b = bullets_add(in->buf, &Pbul1_hit);
+			b->pos = in->pos;
+		// }
 
 }
 
@@ -331,8 +374,10 @@ def_bullet(Pbul1_hit){
 	}
 	// in->col0 = v4c_rand();
 	// in->rad -= .2;
-	in->col0[3] = 55/(in->frame+1);
-	in->col1[3] = 55/(in->frame+1);
+	in->col0[3] = 15/(in->frame+1);
+	// in->col0[3] = 255;
+	in->col1[3] = 15/(in->frame+1);
+	// in->col1[3] = 255;
 	// in->col0[0] = 255;
 
 }

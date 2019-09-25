@@ -5,23 +5,24 @@ GAME_DIR = src/game
 
 CCFLAG = -std=gnu99 -g -O3 -Wall -Wextra -Wno-psabi -ffast-math -funroll-loops -D _DEFAULT_SOURCE
 CPPCFLAG = -std=gnu++11 -Wall -Wextra -g -O3
+
 LFLAG = $(CPPCFLAG)
 LCC=$(CPPC)
 
 CC = $(CROSS)gcc
 CPPC = $(CROSS)g++
+
 PKG_CONFIG = $(CROSS)pkg-config
 SDL2_CONFIG = $(CROSS)sdl2-config
 
-# glew gl SDL2 SDL2_mixer SDL2_net SDL2_image SDL2_ttf libpng
-    # -DGLEW_STATIC
-    # glew gl SDL2_mixer SDL2_net SDL2_image SDL2_ttf libpng
-
-LIBS = -lm -ldl \
+LIBS = -lm \
        $(WIN_LIBS) \
        $(shell $(PKG_CONFIG) --cflags --libs \
-        gl SDL2_mixer SDL2_net SDL2_image SDL2_ttf) \
+        gl SDL2_mixer ) \
        $(shell $(SDL2_CONFIG) --cflags --libs)\
+    # -DGLEW_STATIC
+    # glew gl SDL2_mixer SDL2_net SDL2_image SDL2_ttf libpng
+        # gl SDL2_mixer SDL2_net SDL2_image SDL2_ttf) 
 
 
 
@@ -41,6 +42,7 @@ GAME_OBJ = $(subst .c,.$(CROSSOBJ)o,$(GAME_SRC))
 
 all: @notify $(ENGINE_SRC) $(GAME_SRC) $(MAIN) $(EXEC)
 
+
 $(EXEC): $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ)
 	$(call color_green,"$(LCC) $(EXEC)")
 	$(LCC) $(LFLAG) $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ) $(LIBS)  -o $(EXEC)
@@ -55,16 +57,6 @@ $(EXEC): $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ)
 
 
 
-
-
-
-
-
-
-
-
-
-
 rm: rm-all
 rm-all: clean-engine clean-game
 clean-game:
@@ -74,6 +66,10 @@ clean-game:
 clean-engine:
 	$(call color_red,"rm:") $(ENGINE_OBJ)
 	rm $(ENGINE_OBJ)
+
+
+
+
 
 run:
 	@make --silent --no-print-directory
@@ -100,7 +96,7 @@ WIN_EXEC = $(EXEC).exe
 WIN_FLAG = CROSSOBJ=win. CROSS=i686-w64-mingw32.static- EXEC=$(WIN_EXEC) WIN_LIBS="-liphlpapi -DGLEW_STATIC -lGLEW"
 # WIN_FLAG = CROSSOBJ=win CROSS=x86_64-w64-mingw32.static- EXEC=$(WIN_EXEC)
 # -liphlpapi is requiered for sdl_net to link properly
-# required libs: sdl2 sd2_* glew dlfcn-win32
+# required libs: sdl2_* glew dlfcn-win32 png 
 
 win:
 	make $(WIN_FLAG) -j4
@@ -120,6 +116,48 @@ win-clean:
 
 
 
+#______________________________________________________________________________
+#emcc
+web:
+	$(W)
+
+W=emcc -s ASSERTIONS=1  -s WASM=1 \
+	-s TOTAL_MEMORY=256MB\
+	-s TOTAL_STACK=64MB\
+	-s ERROR_ON_UNDEFINED_SYMBOLS=1 \
+	-s AGGRESSIVE_VARIABLE_ELIMINATION=1 \
+	-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 \
+	-s SINGLE_FILE=1 \
+	-s USE_ZLIB=1 \
+	-s USE_SDL=2 \
+	-s USE_SDL_MIXER=2 \
+	--shell-file www/base.html \
+	-s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]'\
+	-o www/de.html -O2 $(MAIN) $(ENGINE_SRC) $(GAME_SRC) \
+
+	# -s SDL2_IMAGE_FORMATS='["png"]' 
+	# -s USE_SDL_IMAGE=2 
+	# -s USE_SDL_NET=2 
+	# -s USE_SDL_TTF=2 
+	# -s LINKABLE=1
+	# -s EXPORT_ALL=1
+
+# emcc -o www/$(PROJ).html $(CLFLAG) $(MAIN) $(ENGINE_SRC) $(GAME_SRC) $(LIBS)
+# --separate-asm \
+# -msse2 \
+	# -s ALLOW_MEMORY_GROWTH=1 
+# -s TOTAL_MEMORY=128MB
+# -s TOTAL_STACK=64MB
+# -s USE_WEBGL2=1
+# -s FULL_ES3=1
+# -s DISABLE_EXCEPTION_CATCHING=1
+# -s AGGRESSIVE_VARIABLE_ELIMINATION=1
+# -s HEADLESS=1 
+# --profiling 
+#	-s WASM_MEM_MAX=1024MB 
+#	-s USE_PTHREADS=1 
+#	-s PTHREAD_POOL_SIZE=8 
+
 
 
 
@@ -133,6 +171,7 @@ ANDROID_MK_SOURCES = $(addprefix ../../../,$(GAME_SRC) $(MAIN) $(ENGINE_SRC))
 android:
 	$(call color_green,"ln -f -s -r ./assets ./de_android/")
 	@ln -f -s -r ./assets ./de_android/
+	@mkdir -p ./de_android/jni/src
 
 	$(call color_green,"writing android makefile $(ANDROID_MK_PATH):")
 	@echo "#auto generated from root makefile ( $(shell pwd) )" > $(ANDROID_MK_PATH)
@@ -171,8 +210,8 @@ define ANDROID_MK_SUFFIX
 '\n\
 LOCAL_SHARED_LIBRARIES := SDL2 SDL2_image SDL2_mixer SDL2_net SDL2_ttf \n\
 LOCAL_LDLIBS := -lm -ldl -lGLESv1_CM -lGLESv2 -llog -lz\n\
-LOCAL_CFLAGS += $(LFLAG) -DGL_GLEXT_PROTOTYPES \n\
-LOCAL_NEON_CFLAGS += $(LFLAG) -mfloat-abi=softfp -mfpu=neon -march=armv7 \n\
+LOCAL_CFLAGS += $(CCFLAG) -DGL_GLEXT_PROTOTYPES \n\
+LOCAL_NEON_CFLAGS += $(CCFLAG) -mfloat-abi=softfp -mfpu=neon -march=armv7 \n\
 APP_CFLAGS += $(LFLAG) \n\
 include $$(BUILD_SHARED_LIBRARY)\n'
 endef
@@ -191,9 +230,15 @@ endef
 
 
 
+
+
+
+
+
+
 #______________________________________________________________________________
 @notify:
-	$(call color_green,"make")
+	$(call color_green,"________________________")
 
 color_red    =@echo -e "\e[91m"$(1)"\e[0m"$(2)
 color_green  =@echo -e "\e[92m"$(1)"\e[0m"$(2)

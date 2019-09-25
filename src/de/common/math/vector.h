@@ -88,6 +88,10 @@ v4f v4f_from_m4f(m4f A, uint8_t which_row);
 
 
 
+v4d v3d_rand(void);
+v4f v3f_rand(void);
+v4i v3i_rand(void);
+v4c v3c_rand(void);
 v4d v4d_rand(void);
 v4f v4f_rand(void);
 v4i v4i_rand(void);
@@ -249,13 +253,16 @@ m4f m4f_translation(v4f v);
 
 m4f m4f_view(v4f pos, v4f rot);
 m4f m4f_model(v4f pos, v4f rot, v4f sca); //
-m4f m4f_timodel(m4f model); // transpose (inverse (model)) after removing translation
+m4f m4f_timodel(m4f model); // transpose (inverse (model)) after removing translation, used for normals
 
 
 // m4f m4f_view(v4f pos, v4f rot) rotate and translate matrix
 m4f m4f_proj(float angle_of_view, float aspect_ratio, float z_near, float z_far);
 m4f m4f_view_frustum(float angle_of_view, float aspect_ratio, float z_near, float z_far);
-m4f m4f_ortho_project(v2f canvas_size, float near, float far);
+m4f m4f_ortho(float left, float right, float top, float bottom, float near, float far);
+m4f m4f_invortho(float left, float right, float top, float bottom, float near, float far);// inverse of ortho
+
+// m4f m4f_ortho_project(v2f canvas_size, float near, float far);// broken
 
 m4f m4f_look_at(v4f eye, v4f center, v4f up);
 

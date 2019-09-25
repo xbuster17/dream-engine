@@ -127,8 +127,8 @@ void dvao_set_usage(dvao* vao, int b_id, GLenum usage){
 int _dshd_bound_log_once = 0;
 int dvao_draw(dvao* vao, uint start, uint len, GLenum mode){
 	if(!vao) return 1;
-	if(!De.shd_bound){
-		_dshd_bound_log_once++ ? :
+	if(!De.shd_bound && !_dshd_bound_log_once){
+		_dshd_bound_log_once++;
 		(DE_LOG("De.shd_bound is 0!"));
 	}
 	if(len == 0) len = vao->len;
@@ -149,8 +149,8 @@ int dvao_draw(dvao* vao, uint start, uint len, GLenum mode){
 int dvao_drawi(dvao* vao, dibo* ibo, uint start_index, uint len, GLenum mode){
 	if(!vao) return 1;
 	if(!ibo) return 2;
-	if(!De.shd_bound){
-		_dshd_bound_log_once++ ? :
+	if(!De.shd_bound && !_dshd_bound_log_once){
+		_dshd_bound_log_once++;
 		(DE_LOG("De.shd_bound is 0!"));
 	}
 	if(len == 0) len = ibo->len;
@@ -620,7 +620,7 @@ int dvaps_parse(dvaps* vaps, char* format){
 
 
 
-
+/* vertex buffer object */
 
 dvbo* dvbo_new(uint isize, void* idata, GLenum usage){
 	if(usage == 0)
@@ -651,7 +651,7 @@ void dvbo_free(dvbo* vbo){
 
 
 void dvbo_bind(dvbo* vbo){
-	if(vbo == NULL) printf("vbo is null! \n");
+	if(vbo == NULL) DE_LOG("vbo is null! \n");
 	if(vbo == NULL) return;
 	glBindBuffer(GL_ARRAY_BUFFER, vbo->id);
 }
@@ -661,7 +661,7 @@ void dvbo_bind(dvbo* vbo){
 
 
 void dvbo_data(dvbo* vbo, void* data, uint size, GLenum usage){
-	if (vbo == NULL) printf("vbo data is null! \n");;
+	if (vbo == NULL) DE_LOG("vbo data is null! \n");;
 	if (vbo == NULL) return;
 	if (usage == 0)
 		usage = DE_GL_DEFAULT_VBO_USAGE;
@@ -715,9 +715,9 @@ void dvbo_set_usage(dvbo* vbo, GLenum usage){
 
 
 
+/* index buffer object */
 
-
-dibo* dibo_new(short* src, int len, GLenum mode){
+dibo* dibo_new(Uint32* src, int len, GLenum mode){
 	dibo* ibo = malloc(sizeof(dibo));
 	ibo->len = len;
 	ibo->mode = mode;
@@ -727,7 +727,7 @@ dibo* dibo_new(short* src, int len, GLenum mode){
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo->id);
 
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-		len*sizeof(short), (char*)src, GL_STATIC_DRAW);
+		len*sizeof(Uint32), (char*)src, GL_STATIC_DRAW);
 	return ibo;
 }
 
@@ -749,7 +749,7 @@ void dibo_draw(dibo* ibo, int start, int count, GLenum mode){ if(!ibo) return;
 	uintptr_t first = start;
 	if(!mode) mode = ibo->mode;
 	// glDrawElements(mode, count, GL_UNSIGNED_INT, (void*)first);
-	glDrawElements(mode, count, GL_UNSIGNED_SHORT, (void*)first);
+	glDrawElements(mode, count, GL_UNSIGNED_INT, (void*)first);
 }
 
 
@@ -786,7 +786,7 @@ static float Dvao_draw_quad_verts[] = {
 	-1.0,  1.0,
 	 1.0,  1.0
 };
-void dvao_draw_quad(void){ if(!De.shd_bound) return;
+void dvao_draw_quad(void){ if(!De.shd_bound) DE_LOG("De.shd_bound is null, pls set it to your bound glProgram");
 	void* vecs[1] = {Dvao_draw_quad_verts};
 	dvao* vao = dvao_new("f2pos", vecs, 4, GL_TRIANGLE_STRIP);
 	dvao_draw(vao, 0,4,0);

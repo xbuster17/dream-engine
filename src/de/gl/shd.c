@@ -33,7 +33,7 @@ dshd* dshd_new(char* vertex_src, char* fragment_src){
 		show_shader_log(vs_id);
 		glDeleteShader(vs_id);
 		#ifndef ANDROID
-			DE_LOGE("Failed to compile vertex shader: src:\n%s", vertex_src);
+			DE_LOGE("\nFailed to compile vertex shader: src:\n%s", vertex_src);
 		#endif
 		shd->program = 0;
 		free(shd);
@@ -52,13 +52,13 @@ dshd* dshd_new(char* vertex_src, char* fragment_src){
 		show_shader_log(fs_id);
 		glDeleteShader(fs_id);
 		#ifndef ANDROID
-			DE_LOGE("Failed to compile fragment shader: src:\n%s", fragment_src);
+			DE_LOGE("\nFailed to compile fragment shader: src:\n%s", fragment_src);
 		#endif
 		shd->program = 0;
 		free(shd);
 		return NULL;
 	}
-
+// program
 	GLuint shd_program = glCreateProgram();
 	shd->program = shd_program;
 
@@ -68,6 +68,8 @@ dshd* dshd_new(char* vertex_src, char* fragment_src){
 
 // first link
 	if(dshd_link_program(shd_program)) {
+		glDeleteShader(vs_id);
+		glDeleteShader(fs_id);
 		glDeleteProgram(shd_program);
 		shd->program = 0;
 		free(shd);
@@ -85,7 +87,6 @@ dshd* dshd_new(char* vertex_src, char* fragment_src){
 	GLenum attrib_types[ active_attribs ];
 	char attrib_names[ active_attribs ][ active_attribs_max_len+1 ];
 	GLsizei name_len = 0;
-
 
 	for(int i = 0; i < active_attribs; i++){
 		glGetActiveAttrib(shd_program, (uint)i, active_attribs_max_len, &name_len,

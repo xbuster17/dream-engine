@@ -23,6 +23,10 @@ int dwindow_init(int x, int y, int flags){
 
 	#ifdef ANDROID // only possible window size is screen size
 		x=0; y=0;
+		flags |= SDL_WINDOW_FULLSCREEN;
+	#endif
+	#ifdef __EMSCRIPTEN__ // fix sdl bug by resizing the canvas inmediatelly
+		x=0; y=0;
 	#endif
 
 	SDL_DisplayMode mode;
@@ -37,17 +41,29 @@ int dwindow_init(int x, int y, int flags){
 	De.screen_size[1] = mode.h;
 	De.size[0] = x;
 	De.size[1] = y;
+	De.fsize[0] = x;
+	De.fsize[1] = y;
 	De.res = (float)y / (float)x;
 
-	De.win = SDL_CreateWindow("no title",
-		SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		x, y, flags);
+	#if __EMSCRIPTEN__
+	// fixme: starts stretched
+		De.win = SDL_CreateWindow("no title",
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			x/8, y/8, flags);
+		SDL_SetWindowSize(De.win, x, y);
+	#else
+		De.win = SDL_CreateWindow("no title",
+			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+			x, y, flags);
+	#endif
 
 	if (De.win == NULL) {
 		DE_LOGE("error: could not create window; %s", SDL_GetError());
 		return 1;
 	}
-	SDL_GetWindowPosition(De.win, &De.wpos[0], &De.wpos[1]);
+	SDL_GetWindowPosition(De.win, &x, &y);
+	De.wpos[0]=x;
+	De.wpos[1]=y;
 
 	De.ctx = SDL_GL_CreateContext(De.win);
 
@@ -59,20 +75,12 @@ int dwindow_init(int x, int y, int flags){
 
 	dwindow_get_gl_info();
 
-	/* SDL_Image_Init */
-	// img_flags |= IMG_INIT_TIF; // windows and android error: not suported
-	int img_flags = IMG_INIT_JPG | IMG_INIT_PNG;
-	int initted = IMG_Init(img_flags);
-	if((initted&img_flags) != img_flags) {
-		DE_LOG("IMG_Init: %s\n", IMG_GetError());
-		return 3;
-	}
 
 	#ifdef ANDROID
 		dwindow_fullscreen(true);
 	#endif
 
-	dwindow_resized(x, y);
+	// dwindow_resized(x, y);
 
 	return 0;
 }
@@ -109,6 +117,8 @@ void dwindow_size(int x, int y){ if(De.is_android) return;
 	SDL_SetWindowSize(De.win, x, y);
 	De.size[0] = x;
 	De.size[1] = y;
+	De.fsize[0] = x;
+	De.fsize[1] = y;
 }
 
 
@@ -129,9 +139,11 @@ void dwindow_pos(int x, int y){ if(De.is_android) return;
 
 void dwindow_resized(int x, int y){
 	assert(x>0);
-	assert(y>=0);
+	assert(y>0);
+	dfbo_bind(0);
 	dviewport(x, y);
 	De.size = (v2i){x, y};
+	De.fsize = (v2f){x, y};
 	De.ctx_size = (v2i){x, y};
 	De.res = ((float)y) / ((float)x);
 	De.ctx_res = De.res;
@@ -152,24 +164,29 @@ void dwindow_fullscreen(bool b){
 
 
 void dwindow_preconfig(void){
-	/* gl version */
-	// #ifdef ANDROID // gles 2.0
-	// 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-	// 		SDL_GL_CONTEXT_PROFILE_ES);
-	// 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-	// #else // opengl 3.0, compatibility profile
-	// 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-	// 		SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-	// 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	// #endif
+	#if defined _win32 // opengl 3.0, compatibility profile
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+			SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+
+	#elif defined ANDROID // gles 2.0
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+			SDL_GL_CONTEXT_PROFILE_ES);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	// SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
-	//gles2 for all
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-		SDL_GL_CONTEXT_PROFILE_ES);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	#elif defined __EMSCRIPTEN__ // gles 3.0
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+			SDL_GL_CONTEXT_PROFILE_ES);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	
+	#else // gles3.0 for all
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+			SDL_GL_CONTEXT_PROFILE_ES);
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	#endif
+	
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-
 
 
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
@@ -179,10 +196,10 @@ void dwindow_preconfig(void){
 	// SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 	// SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	// SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-	// SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-	/* antialias */
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+	// SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	// SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+	/* antialias */ // fixme: not reporting
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 }
@@ -199,7 +216,8 @@ void dwindow_get_gl_info(void){
 	De.gl_driver = (char*)SDL_GetCurrentVideoDriver();
 	De.gl_version = (char*)glGetString(GL_VERSION);
 	De.gl_renderer = (char*)glGetString(GL_RENDERER);
-	De.gles_v2 = strstr(De.gl_version, "OpenGL ES 2.") ? true : false;
+	// De.gles_v2 = strstr(De.gl_version, "OpenGL ES 2.") ? true : false;
+	De.gles_v2 = true;
 }
 
 

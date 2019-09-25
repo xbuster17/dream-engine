@@ -7,7 +7,7 @@
 #define DE_GL_DEFAULT_ALPHA_FUNC              GL_ALWAYS
 
 int dgl_init(void){
-	glEnable(GL_TEXTURE_2D);
+	// glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	dvsync(1);

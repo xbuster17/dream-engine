@@ -33,23 +33,14 @@ dfrustum dfrustum_make(m4f m, bool normalize){
 
 
 
-bool dfrustum_point(dfrustum f, v4f pt){
-	int i ;
-	for(i=0 ; i < 6; i++){
-		if(v4f_dot(f.planes[i], pt) < 0){
-			return false;
-		}
-	}
-	return true;
-}
+bool dfrustum_point(dfrustum f, v4f pt){ return dfrustum_has_sphere(f, pt, 0); }
 
 
 
 bool dfrustum_has_sphere(dfrustum f, v4f pt, float rad){
-	int i ;
-	pt[3] = 0;
+	int i;
 	for(i=0 ; i < 6; i++){
-		if(v4f_dot(f.planes[i], pt) < -rad){
+		if(v3f_dot(f.planes[i], pt) < -rad){
 			return false;
 		}
 	}

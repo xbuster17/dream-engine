@@ -17,7 +17,7 @@ typedef struct dmesh{
 	m4f mvp;
 	dvao* vao;
 	dtex* tex;
-	dshd* shd;
+	// dshd* shd;
 	//tmp lights
 	v4f lp1;
 	v4f lc1;
@@ -29,7 +29,12 @@ typedef struct dmesh{
 } dmesh;
 
 dmesh* dmesh_open(char* mesh_path, char* tex_path); //tex is optional NULL
+//expected vao format
+//	attribute vec4 apos;
+//	attribute vec4 anor;
+//	attribute vec2 atexCoord;
 dmesh* dmesh_new(dvao*, dtex*); //tex is optional NULL
+void dmesh_update(dmesh*);
 
 void dmesh_free(dmesh*);
 

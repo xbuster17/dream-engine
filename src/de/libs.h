@@ -10,11 +10,13 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
 #include <sys/stat.h>  /*mkdir*/
+
 
 typedef unsigned int uint;
 typedef unsigned short ushort;
@@ -37,17 +39,30 @@ typedef unsigned short ushort;
 		#include <GL/glew.h>
 		#include <GL/gl.h>
 	#else
-		#include <GLES2/gl2.h>
-		#include <GLES2/gl2ext.h>
+	
+		#include <GLES3/gl3.h>
+		// #include <GLES2/gl2.h>
+		// #include <GLES2/gl2ext.h>
 		// #include <GLES/gl.h>
 		// #include <GLES/glext.h>
-		#include "android/glext.h"
+
+// extern PFNGLBINDVERTEXARRAYOESPROC     glBindVertexArray;
+// extern PFNGLDELETEVERTEXARRAYSOESPROC  glDeleteVertexArrays;
+// extern PFNGLGENVERTEXARRAYSOESPROC     glGenVertexArrays;
+// extern PFNGLISVERTEXARRAYOESPROC       glIsVertexArray;
+
+		// #include "android/glext.h"
 	#endif
+
 	#include <SDL2/SDL.h>
-	#include <SDL2/SDL_image.h>
 	#include <SDL2/SDL_mixer.h>
-	#include <SDL2/SDL_net.h>
-	#include <SDL2/SDL_ttf.h>
+	// #include <SDL2/SDL_net.h>
+	// #include <SDL2/SDL_ttf.h>
+	// #include <SDL2/SDL_image.h>
+#endif
+
+#ifndef __EMSCRIPTEN__
+#define EMSCRIPTEN_KEEPALIVE
 #endif
 
 // ensure 'SDL_main' is defined and 'main' is not

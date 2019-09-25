@@ -2,12 +2,13 @@
 #define __DE_DE_STRUCT_H__
 
 #include "libs.h"
-#include "common/common.h"
+#include "common/common.h" // vector
 
 extern struct De{
 //window
 	char* title;
 	v2i size;
+	v2f fsize;
 	v2i wpos;
 	v2i ctx_size;
 	v2i screen_size;
@@ -96,7 +97,9 @@ extern struct De{
 	struct dcam {
 		//view
 		v4f pos;
-		v4f rot;
+		v4f rot; // old
+		v4f dir; 
+		v4f tar;
 		//projection
 		float fov;
 		float far_clip;

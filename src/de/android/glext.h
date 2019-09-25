@@ -1,8 +1,8 @@
 #ifndef __DE_ANDROID_GLEXT_H__
 #define __DE_ANDROID_GLEXT_H__
 
-#ifndef _WIN32
-// #if defined (ANDROID)
+// #ifndef _WIN32
+#if defined (ANDROID)
 // #include <GLES2/gl2ext.h>
 #include "../libs.h"
 

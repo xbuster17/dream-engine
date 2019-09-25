@@ -194,8 +194,8 @@ typedef struct dibo {
 } dibo;
 
 
-// dibo* dibo_new(Uint32* src, int count, GLenum mode);
-dibo* dibo_new(short* src, int count, GLenum mode);
+dibo* dibo_new(Uint32* src, int count, GLenum mode);
+// dibo* dibo_new(short* src, int count, GLenum mode);
 void dibo_free(dibo*);
 void dibo_draw(dibo* ibo, int start, int count, GLenum mode);
 

@@ -15,8 +15,8 @@
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define lerp(a,b,w) ( ( (a)*( 1-(w) ) )+( (b)*(w) ) )
-#define clamp(in,min,max)\
+#define LERP(a,b,w) ( ( (a)*( 1-(w) ) )+( (b)*(w) ) )
+#define CLAMP(in,min,max)\
 	(((in)>=(max))?(max):(((in)<=(min))?(min):(in)))
 
 // linear mapping of value x from range[a,b] to [c,d], without clamping
@@ -34,7 +34,7 @@ int gl2px(float val, int min, int max);
 
 #define hash4(x,y,z,seed) (((x)*73856093 ^ (y)*19349663 ^ (z)*179426549 ^ (seed)*19349663))
 #define hash3(x,y,seed) (((x)*73856093 ^ (y)*15257039477 ^ (seed)*19349663))
-#define hash2(x,y) (((x)*73856093 ^ (y)*83492791))
+#define hash2(x,y) (((x)*73856093ul ^ (y)*83492791ul))
 
 
 // static inline int floor(float x){ int i = (int)x; if(i>x)i--; return i;}

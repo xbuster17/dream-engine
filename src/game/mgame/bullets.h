@@ -37,11 +37,15 @@ typedef struct bullets{
 
 	SDL_Thread* thread;
 	long unsigned int threadID;
-	SDL_mutex* bmutex;
 	bool tlogic_done;
 	bool tshould_finish;
 	// bool tmust_wait; // if true, wait until thread finish and upload, else skip upload call
 	uint cursor; // increases with each add, %= len
+	SDL_mutex* bmutex; // i better save it's own buffer...
+	v4f* ppos;
+	v4f* pctr;
+	v4c* pcol0;
+	v4c* pcol1;
 } bullets;
 
 
@@ -114,6 +118,10 @@ void bullets_draw(bullets* bs);
 bullet* bullets_add(bullets* bs, bullet* b);
 // bullet* bullet_add(bullet* b);
 void bullet_clear( bullet* b );
+
+
+
+EMSCRIPTEN_KEEPALIVE void bullet_rng( float x, float y, float z );
 
 
 

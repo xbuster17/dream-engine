@@ -3,30 +3,48 @@
 dmesh* dmesh_open(char* mesh_path, char* tex_path){ if(!mesh_path) return NULL;
 	dvao* v = dmesh_open_obj(mesh_path);
 	if(!v){ DE_LOG("couldnt open .obj file: %s", mesh_path); return NULL;}
-	dtex* t = dtex_open(tex_path);
-	if(!t){ DE_LOG("couldnt open texture file: \"%s\" for obj file: %s ", tex_path, mesh_path);}
+	dtex* t=NULL;
+	if(tex_path) {
+		t = dtex_open(tex_path);
+		if(!t) DE_LOG("couldnt open texture file: \"%s\" for obj file: %s ", tex_path, mesh_path);
+	}
 	return dmesh_new(v, t);
 }
-
+dmesh dmesh_default;
 dmesh* dmesh_new(dvao* v, dtex* t){ if(!v) return NULL;
 	dmesh* m = malloc(sizeof(struct dmesh));
+	dmesh_default = (dmesh){
+		.pos = (v4f){0,0,0,1},
+		.rot = (v4f){0,0,0,1},
+		.sca = (v4f){1,1,1,1},
+		.m = M4F_ID,
+		.n = M4F_ID,
+		.mvp = M4F_ID,
+		.lp1 = (v4f){0,0,0,1},
+		.lc1 = (v4f){1,1,1,0},
+		.li1 = 1,
+		.lp2 = (v4f){0,0,0,1},
+		.lc2 = (v4f){1,1,1,0},
+		.li2 = 1,
+	};
+	*m=dmesh_default;
 	m->vao = v;
 	m->tex = t;
-	m->pos = (v4f){0,0,0,1};
-	m->rot = (v4f){0,0,0,1};
-	m->sca = (v4f){1,1,1,1};
-	m->pos = (v4f){0,0,0,1};
-	m->m = m4f_id();
-	m->n = m4f_id();
-	m->mvp = m4f_id();
-//tmp light
-	m->lp1 = (v4f){0,0,0,1};
-	m->lc1 = (v4f){1,1,1,0};
-	m->li1 = 1;
 
-	m->lp2 = (v4f){0,0,0,1};
-	m->lc2 = (v4f){1,1,1,0};
-	m->li2 = 1;
+// 	m->pos = (v4f){0,0,0,1};
+// 	m->rot = (v4f){0,0,0,1};
+// 	m->sca = (v4f){1,1,1,1};
+// 	m->m = m4f_id();
+// 	m->n = m4f_id();
+// 	m->mvp = m4f_id();
+// //tmp light
+// 	m->lp1 = (v4f){0,0,0,1};
+// 	m->lc1 = (v4f){1,1,1,0};
+// 	m->li1 = 1;
+
+// 	m->lp2 = (v4f){0,0,0,1};
+// 	m->lc2 = (v4f){1,1,1,0};
+// 	m->li2 = 1;
 
 	return m;
 }
@@ -39,12 +57,15 @@ void dmesh_free(dmesh* m){ if(!m) return;
 
 void dmesh_tex(dmesh* m, dtex* t){ if(!m || !t) return;
 	dtex_free(m->tex);
-	m->tex = dtex_ref(t);
+	// m->tex = dtex_ref(t);
+	m->tex = t;
 }
 
 void dmesh_update(dmesh* m){ if(!m) return;
 	m->m = m4f_model(m->pos, m->rot, m->sca);
+	// m->m = m4f_model(v4f_0, m->rot, m->sca);
 	m->n = m4f_timodel(m->m);
+	// m->n = m4f_transpose(m4f_inverse(m->m));
 	m->mvp = m4f_mul(m->m, De.cam.vp);
 }
 
@@ -124,8 +145,8 @@ void dmesh_shd_unif_update(dmesh* m){ if(!m) return;
 
 
 void dmesh_draw(dmesh* m){ if(!m) return;
-	dmesh_update(m);
 	if(!Dmesh_shd) dmesh_shd_init();
+	dmesh_update(m);
 	dmesh_shd_unif_update(m);
 	dshd_bind(Dmesh_shd);
 	dshd_update(Dmesh_shd);
@@ -181,7 +202,7 @@ char* Dmesh_shd_vsrc = DE_SHD_HEADERV QUOTE(
 	uniform vec4 mspec;
 	uniform float mshin;
 	// TODO light uniforms
-	uniform vec4 lamb;
+	// uniform vec4 lamb;
 	uniform vec4 lp1;
 	uniform vec4 lc1;
 	uniform float li1;
@@ -198,14 +219,17 @@ char* Dmesh_shd_vsrc = DE_SHD_HEADERV QUOTE(
 	\t    vec4 inor = normalize(N * vnor);                                 \n
 	\t    vec4 lspec = vec4(0.0, 0.0, 0.0, 1.0);                           \n
 	\t    vec4 v = normalize( eye - M * vpos);                             \n
-	\t    vec4 ldirv = lpos - vpos;                                        \n
+	\t    vec4 ldirv = lpos - M*vpos;                                        \n
 	\t    vec4 ldir = normalize(ldirv);                                    \n
 	\t    vec4 r = reflect(-ldir, inor);                                   \n
 	\t    float cosTheta = max(dot(ldir, inor), 0.0);                      \n
-	\t    vec4 ldiff = diff * lcol * lpow * cosTheta;                      \n
+	\t    float dist2 = dot(ldirv, ldirv);                         \n\t
+	\t    if( lpos.w == 0.0 ) dist2=1.0;
+	\t    vec4 ldiff = diff * lcol * lpow * cosTheta / dist2;                      \n
 	\t    if(cosTheta > 0.0)                                               \n
 	\t\t        lspec = ( spec  *  lcol  *  lpow  *                        \n
-	\t\t\t            pow(max(dot(r,v), 0.0),  shininess ));               \n
+	// \t\t        lspec = clamp(cosTheta*1000.0, 0.0, 1.0)*( spec  *  lcol  *  lpow  *                        \n
+	\t\t\t            pow(max(dot(r,v), 0.0),  shininess ))/dist2;               \n
 	\t    return ldiff + lspec;                                            \n
 	}
 	// TODO multiply lspec by clamped costheta to avoid if guard
@@ -229,6 +253,7 @@ char* Dmesh_shd_vsrc = DE_SHD_HEADERV QUOTE(
 		// vcol = light(eye, ap, an, M,N, lpos, lcol, lpow, mspec, mdif, mshin);
 		vcol = light(eye, ap, an, M,N, lp1, lc1, li1, mspec, mdif, mshin);
 		vcol += light(eye, ap, an, M,N, lp2, lc2, li2, mspec, mdif, mshin);
+		vcol.a=1.0;
 		gl_Position = MVP * ap;
 	}
 );
@@ -247,7 +272,7 @@ char* Dmesh_shd_fsrc = DE_SHD_HEADERF QUOTE(
 
 	void main(void){
 		vec4 tcol = texture2D(tex, vtc);
-		if(tcol.a == 0.0) discard;
+		// if(tcol.a == 0.0) discard;
 		gl_FragColor = tcol * vcol;
 	}
 );

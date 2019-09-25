@@ -5,9 +5,10 @@
 extern "C" {
 #endif
 
+// #define num_enemy_bullets 64000
 // #define num_enemy_bullets 10922
 #define num_enemy_bullets 4096
-#define num_player_bullets 512
+#define num_player_bullets 800
 
 #include "bullets.h"
 
@@ -41,9 +42,14 @@ extern struct game {
 	hmap* hmap0;
 	hmap* hmap1;
 
+	v4f sunpos;
+	v4f suncol;
+
 	struct player player;
 	// float player_rad;
-	dfbo* pbulfbo;
+	// dfbo* pbulfbo;
+	dfbo* bg;
+	int bg_index;
 
 	struct enemy enm[128];
 	v4f clear_color;
@@ -52,12 +58,37 @@ extern struct game {
 	// m4f mvp;
 	int frame;
 	float dt;
+	Uint64 timePrev;
+	Uint64 time;
+	float ftime;
+	
 	struct lvl* curr_lvl;
+
 	dsnd* phitsnd;
 	float* screensmp;
+	bool cam_in_hmap;
+
+// #define GQ_MAX 6
+// 	struct{
+// 		float hm_shadow_tex_size;// the size of the shadow texture for bullets over hmap
+// 		float hm_shadow_len;// how far bullets shadow gets sampled, 
+// 		int hm_size;// how far bullets shadow gets sampled, 
+// 		int bs_count;// how far bullets shadow gets sampled, 
+// 	} gconf[GQ_MAX];
+// 	int gquality;
+	
+	int main_fbo_scale;
+
 } Game;
+
 #define G Game
+
 void mgame_main(void);
+
+EMSCRIPTEN_KEEPALIVE void sunc( float x, float y, float z );
+
+#include "points.h"
+#include "mcyl.h"
 
 #ifdef __cplusplus
 }

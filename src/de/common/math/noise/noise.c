@@ -17,17 +17,38 @@ double noise1d(double x, double* d){
 	else return sdnoise1(x, NULL);
 }
 double noise2d(v2d x, v2d* d){
-	if(d!=NULL)
-		return sdnoise2(x[0],x[1], &(*d)[0],&(*d)[1]);
-	else return sdnoise2(x[0],x[1], NULL,NULL);
+	if(d==NULL)
+		return sdnoise2(x[0],x[1], NULL,NULL);
+
+	double ret, dx,dy;
+	ret=sdnoise2(x[0],x[1], &dx, &dy);
+		// return sdnoise2(x[0],x[1], &(*d)[0],&(*d)[1]);
+	(*d)[0]=dx;
+	(*d)[1]=dy;
+	return ret;
+		
 }
 double noise3d(v4d x, v4d* d){
-	if(d!=NULL)
-		return sdnoise3(x[0],x[1],x[2], &(*d)[0],&(*d)[1],&(*d)[2]);
-	else return sdnoise3(x[0],x[1],x[2], NULL,NULL,NULL);
+	if(d==NULL)
+		return sdnoise3(x[0],x[1],x[2], NULL,NULL,NULL);
+
+	double ret, dx,dy,dz;
+	ret=sdnoise3(x[0],x[1],x[2], &dx,&dy,&dz);
+	(*d)[0]=dx;
+	(*d)[1]=dy;
+	(*d)[2]=dz;
+	return ret;
 }
 double noise4d(v4d x, v4d* d){
-	if(d!=NULL)
-		return sdnoise4(x[0],x[1],x[2],x[3], &(*d)[0],&(*d)[1],&(*d)[2],&(*d)[3]);
-	else return sdnoise4(x[0],x[1],x[2],x[3], NULL,NULL,NULL,NULL);
+	if(d==NULL)
+		return sdnoise4(x[0],x[1],x[2],x[3], NULL,NULL,NULL,NULL);
+
+	double ret, dx,dy,dz,dw;
+	ret=sdnoise4(x[0],x[1],x[2],x[3], &dx,&dy,&dz,&dw);
+	(*d)[0]=dx;
+	(*d)[1]=dy;
+	(*d)[2]=dz;
+	(*d)[3]=dw;
+	return ret;
+	
 }

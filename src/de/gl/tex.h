@@ -33,6 +33,8 @@ void dtex_set(dtex* tex, v4c* pixels, int x, int y);
 void dtex_filter(dtex* tex, GLenum min, GLenum mag);
 void dtex_wrap(dtex* tex, GLenum wrap_s, GLenum wrap_t);
 
+void dtex_resize(dtex* tex, int x, int y);
+
 //todo
 dtex* dtex_new_cube(dtex* t[6], int x, int y); // top,bottom,left,right,front,back todo
 
@@ -59,6 +61,10 @@ void dfbo_bind(dfbo*);
 void dfbo_tex(dfbo*, dtex* color, dtex* depth); // null ignores changes
 
 void dfbo_draw(dfbo*);
+void dfbo_draw_depth(dfbo* fbo, float alpha);
+
+dfbo* dfbo_bound(void);
+void dfbo_resize(dfbo* fbo, int x, int y);
 
 
 

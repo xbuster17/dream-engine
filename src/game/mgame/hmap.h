@@ -11,7 +11,8 @@ typedef struct hmap{
 	int x,y; //res
 	int res; // must be square
 	SDL_mutex* cache_mutex;
-
+	float shadow_len; 
+	v4f scale; //todo
 	v4f focus;
 	v4f ifocus; // integer, floor of focus
 
@@ -19,7 +20,8 @@ typedef struct hmap{
 	dibo* ibo;
 	dshd* shd;
 	dtex* tex;
-	dfbo* shadow;
+	dfbo* shadow; // from bullets
+	dfbo* shadow_map; // from sun
 	int mode; // dynamic, follow, fixed, generated;
 	bool generated;
 	bool use_shadow;
@@ -38,6 +40,10 @@ void hmap_draw(hmap*);
 // void hmap_mode(hmap*, bool dynamic, bool follow, bool fixed);
 
 float hmap_eval(hmap*, float x, float y); // approximates with cached heights
+float hmap_evald(hmap*, float x, float y, float* normal_x, float* normal_y, float* normal_z); // get normal
+
+// enum hmap_trans_effect{hmte_}
+// void hmap_trans(hmap*, float(*dst_func)(float x,float y), float time, enum hmap_trans_effect);
 
 
 #ifdef __cplusplus

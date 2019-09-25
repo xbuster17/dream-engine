@@ -18,10 +18,10 @@ v4c* _bullet_pcol1;
 SDL_mutex* _bullet_buffer_mutex;
 
 v4c* bullet_tex_pixels;
-int bullet_tex_size = 32;
-int bullet_tex_size2 = 32*32;
+int bullet_tex_size = 128;
+int bullet_tex_size2 = 128*128;
 #ifdef ANDROID
-int shadow_map_size = 1024;
+int shadow_map_size = 1024/2;
 #else
 int shadow_map_size = 1024*2;
 #endif
@@ -34,6 +34,7 @@ dshd* bullet_shadow_shd = NULL;
 char* bullet_shadow_shd_vsrc;
 char* bullet_shadow_shd_fsrc;
 v4f Hmap_shadow_focus;
+float Hmap_shadow_len;
 
 
 
@@ -90,6 +91,7 @@ void bullets_init(uint count){
 	bullet_shd = dshd_new( bullet_vshdsrc, bullet_fshdsrc);
 	dshd_unif(bullet_shd, "view", &De.cam.view);
 	dshd_unif(bullet_shd, "mvp", &De.cam.vp);
+	dshd_unif(bullet_shd, "proj", &De.cam.proj);
 	dshd_unif(bullet_shd, "tex", &zero);
 	// dtex_bind(bullet_tex, 0);
 	dshd_unif(bullet_shd, "eye", &De.cam.pos);
@@ -117,7 +119,7 @@ void bullets_init(uint count){
 //	bullet_ibo = dibo_new(ibo, count*6, GL_TRIANGLE_STRIP);
 
 //tris
-	short* ibo = malloc(sizeof(short) * count * 6);
+	Uint32* ibo = malloc(sizeof(Uint32) * count * 6);
 	int in = 0;
 	for(uint i = 0; i<count * 6 -1; i++){
 		ibo[i] = in; // 1
@@ -143,8 +145,10 @@ void bullets_init(uint count){
 	bullet_shadow_shd = dshd_new(bullet_shadow_shd_vsrc, bullet_shadow_shd_fsrc);
 
 	dshd_unif(bullet_shadow_shd, "m", &shadow_cam_view);
+	dshd_unif(bullet_shadow_shd, "mvp", &De.cam.vp);
 	dshd_unif(bullet_shadow_shd, "tex", &zero);
 	dshd_unif(bullet_shadow_shd, "hmap_focus", &Hmap_shadow_focus);
+	dshd_unif(bullet_shadow_shd, "shadow_len", &Hmap_shadow_len);
 
 	_bullet_buffer_mutex = SDL_CreateMutex();
 }
@@ -171,17 +175,28 @@ void bullets_quit(void){
 
 bullets* bullets_new(uint count, bool shadow, int thread){
 	bullets* bs = malloc(sizeof(bullets));
-	bs->b = malloc(sizeof(bullet) * count);
 	bs->len = count;
-
+	bs->b = malloc(sizeof(bullet) * count);
 	for (uint i = 0; i < count; i++){
 		bs->b[i] = bullet_0;
 	}
+	bs->ppos = malloc(sizeof(v4f)*count*4);
+	bs->pctr = malloc(sizeof(v4f)*count*4);
+	bs->pcol0 = malloc(sizeof(v4c)*count*4);
+	bs->pcol1 = malloc(sizeof(v4c)*count*4);
+	for (uint i = 0; i < count*4; i++){
+		bs->ppos[i] = (v4f){-1,-1, 0, 0};i++;
+		bs->ppos[i] = (v4f){ 1,-1, 1, 0};i++;
+		bs->ppos[i] = (v4f){-1, 1, 0, 1};i++;
+		bs->ppos[i] = (v4f){ 1, 1, 1, 1};
+	}
 
-	void* verts[] = {_bullet_ppos, _bullet_pctr, _bullet_pcol0, _bullet_pcol1};
+
+	// void* verts[] = {_bullet_ppos, _bullet_pctr, _bullet_pcol0, _bullet_pcol1};
+	// void* verts[] = {_bullet_ppos, NULL,NULL,NULL};
 	// bs->vao = dvao_newr("f2p, f2tc; f4ctr; uc4col0; uc4col1", verts, count*4, GL_TRIANGLE_STRIP);
-	bs->vao = dvao_newr("f2p, f2tc; f4ctr; uc4col0; uc4col1", verts, count*4, GL_TRIANGLES);
-
+	bs->vao = dvao_newr("f2p, f2tc; f4ctr; uc4col0; uc4col1", NULL, count*4, GL_TRIANGLES);
+	dvao_setr(bs->vao, 0, _bullet_ppos, 0, count*4);
 	// bs->vao->vbos[0]->usage = GL_DYNAMIC_DRAW;
 	bs->vao->vbos[1]->usage = GL_STREAM_DRAW;
 	bs->vao->vbos[2]->usage = GL_STREAM_DRAW;
@@ -229,7 +244,12 @@ void bullets_free(bullets* bs){ if(!bs) return;
 	if(bs->shadow) dfbo_free(bs->shadow_map);
 	// if(bs->shadow_map) dfbo_free(bs->shadow_map);
 	dvao_free(bs->vao);
-
+	
+	free(bs->ppos);
+	free(bs->pctr);
+	free(bs->pcol0);
+	free(bs->pcol1);
+	
 	free(bs->b);
 	free(bs);
 
@@ -246,14 +266,14 @@ void bullets_update_logic(bullets* bs, float dt){
 		} else {
 
 			bs->b[i].acc += bs->b[i].force * dt;
-			bs->b[i].acc[0] = clamp(bs->b[i].acc[0], -bs->b[i].tacc, bs->b[i].tacc);
-			bs->b[i].acc[1] = clamp(bs->b[i].acc[1], -bs->b[i].tacc, bs->b[i].tacc);
-			bs->b[i].acc[2] = clamp(bs->b[i].acc[2], -bs->b[i].tacc, bs->b[i].tacc);
+			bs->b[i].acc[0] = CLAMP(bs->b[i].acc[0], -bs->b[i].tacc, bs->b[i].tacc);
+			bs->b[i].acc[1] = CLAMP(bs->b[i].acc[1], -bs->b[i].tacc, bs->b[i].tacc);
+			bs->b[i].acc[2] = CLAMP(bs->b[i].acc[2], -bs->b[i].tacc, bs->b[i].tacc);
 
 			bs->b[i].vel += bs->b[i].acc * dt;
-			bs->b[i].vel[0] = clamp(bs->b[i].vel[0], -bs->b[i].tvel, bs->b[i].tvel);
-			bs->b[i].vel[1] = clamp(bs->b[i].vel[1], -bs->b[i].tvel, bs->b[i].tvel);
-			bs->b[i].vel[2] = clamp(bs->b[i].vel[2], -bs->b[i].tvel, bs->b[i].tvel);
+			bs->b[i].vel[0] = CLAMP(bs->b[i].vel[0], -bs->b[i].tvel, bs->b[i].tvel);
+			bs->b[i].vel[1] = CLAMP(bs->b[i].vel[1], -bs->b[i].tvel, bs->b[i].tvel);
+			bs->b[i].vel[2] = CLAMP(bs->b[i].vel[2], -bs->b[i].tvel, bs->b[i].tvel);
 
 			bs->b[i].pos += bs->b[i].vel * dt;
 
@@ -267,26 +287,27 @@ void bullets_update_logic(bullets* bs, float dt){
 	}
 
 	// SDL_TryLockMutex(_bullet_buffer_mutex);
-	SDL_LockMutex(_bullet_buffer_mutex);
+	// SDL_LockMutex(_bullet_buffer_mutex);
 // prepare buffers on main ram
 	uint j = 0;
+	// for (uint i = 0; i < bs->len; i++){
 	for (uint i = 0; i < bs->len * 4; i++){
-		_bullet_pctr[i] = bs->b[j].pos; _bullet_pctr[i][3] = bs->b[j].rad; _bullet_pcol0[i] = bs->b[j].col0; _bullet_pcol1[i] = bs->b[j].col1; i++;
-		_bullet_pctr[i] = bs->b[j].pos; _bullet_pctr[i][3] = bs->b[j].rad; _bullet_pcol0[i] = bs->b[j].col0; _bullet_pcol1[i] = bs->b[j].col1; i++;
-		_bullet_pctr[i] = bs->b[j].pos; _bullet_pctr[i][3] = bs->b[j].rad; _bullet_pcol0[i] = bs->b[j].col0; _bullet_pcol1[i] = bs->b[j].col1; i++;
-		_bullet_pctr[i] = bs->b[j].pos; _bullet_pctr[i][3] = bs->b[j].rad; _bullet_pcol0[i] = bs->b[j].col0; _bullet_pcol1[i] = bs->b[j].col1;
+		bs->pctr[i] = bs->b[j].pos; bs->pctr[i][3] = bs->b[j].rad; bs->pcol0[i] = bs->b[j].col0; bs->pcol1[i] = bs->b[j].col1; i++;
+		bs->pctr[i] = bs->b[j].pos; bs->pctr[i][3] = bs->b[j].rad; bs->pcol0[i] = bs->b[j].col0; bs->pcol1[i] = bs->b[j].col1; i++;
+		bs->pctr[i] = bs->b[j].pos; bs->pctr[i][3] = bs->b[j].rad; bs->pcol0[i] = bs->b[j].col0; bs->pcol1[i] = bs->b[j].col1; i++;
+		bs->pctr[i] = bs->b[j].pos; bs->pctr[i][3] = bs->b[j].rad; bs->pcol0[i] = bs->b[j].col0; bs->pcol1[i] = bs->b[j].col1;
 		j++;
 	}
 
 	// bullet_upload
-	dvao_setr(bs->vao, 1, _bullet_pctr, 0, bs->len * 4);
-	dvao_setr(bs->vao, 2, _bullet_pcol0, 0, bs->len * 4);
-	dvao_setr(bs->vao, 3, _bullet_pcol1, 0, bs->len * 4);
+	dvao_setr(bs->vao, 1, bs->pctr, 0, bs->len * 4);
+	dvao_setr(bs->vao, 2, bs->pcol0, 0, bs->len * 4);
+	dvao_setr(bs->vao, 3, bs->pcol1, 0, bs->len * 4);
 	// dvao_set(bs->vao, 2, _bullet_pctr, 0, bs->len * 4);
 	// dvao_set(bs->vao, 3, _bullet_pcol0, 0, bs->len * 4);
 	// dvao_set(bs->vao, 4, _bullet_pcol1, 0, bs->len * 4);
 
-	SDL_UnlockMutex( _bullet_buffer_mutex );
+	// SDL_UnlockMutex( _bullet_buffer_mutex );
 }
 
 
@@ -320,6 +341,14 @@ void bullets_upload(bullets* bs){if (!bs) return;
 
 
 void bullets_draw(bullets* bs){ if(!bs) return;
+	dcullf(0);
+	ddepth(1,0);
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// dblend(0);
+dfbo* _prevfbo=dfbo_bound();
+
+	// dcam_update();
+
 	dtex_bind(bullet_tex, 0);
 
 	if(bs->shadow){
@@ -328,6 +357,7 @@ void bullets_draw(bullets* bs){ if(!bs) return;
 		dclear_color((v4f){0,0,0,0});
 		dclear(0);
 		dclear_color(G.clear_color); // restore state
+		dblend(0);
 		// dcam_update();
 	// dblend(0);
 
@@ -349,6 +379,7 @@ void bullets_draw(bullets* bs){ if(!bs) return;
 			// dshd_unif(bullet_shadow_shd, "hmap_focus", &game.hmap->focus);
 		// }
 Hmap_shadow_focus = G.hmap0->focus;
+Hmap_shadow_len = G.hmap0->shadow_len;
 		// dshd_unif(bullet_shadow_shd, "m", &m);
 		// dshd_unif(bullet_shadow_shd, "tex", &zero);
 		// dtex_bind(bullet_tex, 0);
@@ -358,16 +389,21 @@ Hmap_shadow_focus = G.hmap0->focus;
 		// dibo_draw(bullet_ibo, 0, (bs->vao->len/4)*6, GL_TRIANGLE_STRIP);
 		dibo_draw(bullet_ibo, 0, (bs->vao->len/4)*6, GL_TRIANGLES);
 
-		dfbo_bind(0);
 
 	}
-
+	dfbo_bind(_prevfbo);
+	// dfbo_bind(0);
+	dcam_update();
 	dcullf(0);
 	ddepth(1,0);
-	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	dblend(1);
 
-	dcam_update();
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// dcullf(0);
+	// ddepth(1,0);
+	// // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// dblend(1);
+
 	// dshd_unif(bullet_shd, "view", &De.cam.view);
 	// dshd_unif(bullet_shd, "mvp", &De.cam.vp);
 	// dshd_unif(bullet_shd, "tex", &zero);
@@ -384,7 +420,7 @@ Hmap_shadow_focus = G.hmap0->focus;
 	dibo_draw(bullet_ibo, 0, (bs->vao->len/4)*6, GL_TRIANGLES);
 
 
-	dblend(0);
+	// dblend(0);
 }
 
 
@@ -426,20 +462,23 @@ bullet* bullets_add(bullets* bs, bullet* b){
 
 int bullets_thread_fn(void* data){
 	if (!data) return 0;
-	bullets* bs = (bullets*)data;
+	bullets* bs = data;
 
 	while(!bs->tshould_finish){
 		if(!bs->tlogic_done){
 			int error;
-			error = SDL_LockMutex(bs->bmutex);
+			error = SDL_TryLockMutex(bs->bmutex);
 			// if(error) goto _delay;
 			if(error) DE_LOG("error locking mutex");
 			bullets_update_logic(bs, bs->dt);
+			
 			bs->tlogic_done = true;
-
+			
 			SDL_UnlockMutex(bs->bmutex);
+
 		}
 		// _delay:
+		// ddelay(G.dt*1000.0 / 2.0);
 		ddelay(1);
 	}
 
@@ -569,12 +608,15 @@ char* bullet_fshdsrc = DE_SHD_HEADERF QUOTE(
 
 	uniform vec4 eye;
 	uniform vec4 lpos;
+	uniform mat4 mvp;
+	uniform mat4 view;
+	uniform mat4 proj;
 
 	mat4 M = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 	mat4 N = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-	vec4 lcol = vec4(1.0, 1.0, 1.25, 1.0);
+	vec4 lcol = vec4(1.0, 1.0, 1.0, 1.0);
 	// vec4 lcol = vec4(1.0, 1.0, 0.0, 1.0);
-	float lpow = 2.0;
+	float lpow = 1.0;
 
 	vec4 light(
 		vec4 eye, vec4 vpos, vec4 vnor, mat4 M, mat4 N,
@@ -619,7 +661,7 @@ char* bullet_fshdsrc = DE_SHD_HEADERF QUOTE(
 
 		vec4 tcol1 = texture2D(tex, htc );
 
-		if(tcol1.a == 0.0) discard;
+		if(tcol1.a == 0.0) {/*gl_FragDepth=0.0;*/discard; }
 		// vec4 light_component = vec4(0.0, 0.0, 0.0, 1.0);
 		// if(vlight_reached > 1.0)
 		// vec4 light_component = light(eye, ap, an, M,N, flpos, lcol, lpow)*2.0+0.5;
@@ -634,6 +676,19 @@ char* bullet_fshdsrc = DE_SHD_HEADERF QUOTE(
 		gl_FragColor *= light_component;//*mod(length(flpos.xyz-vpos.xyz), 2.0);
 		// gl_FragColor = pow(gl_FragColor, vec4(.67, .67, .67, 1.0));
 		gl_FragColor = pow(gl_FragColor, vec4(2.5, 2.5, 2.5, 1.0));
+
+		// float rad = vpctr.a;
+		// gl_FragDepth = gl_FragCoord.z - rad/100.0 * length( pow(gl_FragColor.xyz, vec3(2.0)) ); // so wrong ! todo propper depth
+		// gl_FragDepth = gl_FragCoord.z - (rad * (1.0-dot(vpos,vpos)/2.0) )/(gl_FragCoord.z/gl_FragCoord.w); // so wrong ! todo propper depth
+		// gl_FragDepth = gl_FragCoord.z - (rad/4.0) * (length(vec2(1.0))-length(vpos) ); // so wrong ! todo propper depth
+
+		// gl_FragDepth = gl_FragCoord.z - rad * length(((gl_FragCoord.xy/1024.0)*2.0-1.0) - (mvp*vpctr).xy);
+		// gl_FragDepth = (mvp*vfpos).z;
+		// gl_FragDepth = 1.0/length(mvp*vec4((vfpos.xyz-eye.xyz),1.0));
+		    //Set the depth based on the new cameraPos.
+  // vec4 clipPos = mvp * vec4(eye.xyz, 1.0);
+  // float ndcDepth = clipPos.z / clipPos.w;
+		// gl_FragDepth = (((500.0-0.5) * ndcDepth) + .5 + 500.0) / 2.0;
 		// gl_FragColor += tcol1*vcol0 + vcol1*(1.0-dot(vpos,vpos));
 		// gl_FragColor = tcol1*vcol0 + vcol1*(1.0-dot(vpos,vpos)) + light_component;
 
@@ -663,6 +718,7 @@ char* bullet_shadow_shd_vsrc = DE_SHD_HEADERV QUOTE(
 
 	uniform mat4 m;
 	uniform vec4 hmap_focus;
+	uniform float shadow_len;
 
 	varying vec2 vtc;
 	varying vec2 vpos;
@@ -679,11 +735,15 @@ char* bullet_shadow_shd_vsrc = DE_SHD_HEADERV QUOTE(
 
 		// float hres = hmap_focus.w/2.0;
 		// float hres = hmap_focus.w/4.0;// half hmap shadow for higher res
-		float hres = hmap_focus.w/8.0;// quarter hmap shadow for higher res
+		// float hres = hmap_focus.w/8.0;// quarter hmap shadow for higher res
+		float hres = shadow_len/2.0;// need a fixed size
+		// float hres = hmap_focus.w/16.0;// quarter hmap shadow for higher res
+		// float hres = 32.0/8.0;// quarter hmap shadow for higher res
 
 		// shadow blend based on height
 		float dist = abs(pctr.y - hmap_focus.y);
 		float fogfactor = (hres - dist)/(hres - hres/32.0);
+		// float fogfactor = (hres - dist)/(hres - hres/16.0);
 		fogfactor = clamp( fogfactor, 0.0, 1.0);
 		vcol0 = mix(vec4(.0, .0, .0, 0.0), vcol0, fogfactor);
 		vcol1 = mix(vec4(.0, .0, .0, 0.0), vcol1, fogfactor);
@@ -696,6 +756,7 @@ char* bullet_shadow_shd_vsrc = DE_SHD_HEADERV QUOTE(
 		vec3 cam_up =    vec3(m[0][1],m[1][1],m[2][1]);
 		// vec3 ipos = (vec3(pctr.x, pctr.y, pctr.z)-hmap_focus.xyz) /hres;
 		vec3 ipos = (vec3(pctr.x, floor(hmap_focus.y), pctr.z)-floor(hmap_focus.xyz)) /hres;
+		// vec3 ipos = (vec3(pctr.x, floor(hmap_focus.y), pctr.z)-floor(hmap_focus.xyz)) /32.0;
 		vec4 fpos = vec4(ipos +
 			(cam_right * (pos.x))*scale/*/hres*/ +
 			(cam_up *    (pos.y))*scale/*/hres*/
@@ -731,7 +792,9 @@ char* bullet_shadow_shd_fsrc = DE_SHD_HEADERF QUOTE(
 
 		if(tcol1.a == 0.0) discard;
 		gl_FragColor = tcol1*vcol0 + vcol1*(1.0-dot(vpos,vpos));
-		gl_FragColor.a = 0.0;
+		// gl_FragColor = tcol1+(vcol0*1.0*(1.0-dot(vpos,vpos)));
+		// gl_FragColor = vcol1;
+		// gl_FragColor.a = 0.0;
 		// gl_FragColor = pow(tcol0 * vcol0 + tcol1*(1.0-mod(dot(vpos,vpos)*5.0, 1.0)) * vcol1, vec4(.75,.75,.75,1.0));
 		// gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 	}
@@ -739,3 +802,22 @@ char* bullet_shadow_shd_fsrc = DE_SHD_HEADERF QUOTE(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+EMSCRIPTEN_KEEPALIVE void bullet_rng( float x, float y, float z ){
+	bullet* b = bullets_add(G.enemy_bullets, &playertrace);
+	b->pos[0]=x;
+	b->pos[1]=y;
+	b->pos[2]=z;
+	b->lifetime=1000;
+}

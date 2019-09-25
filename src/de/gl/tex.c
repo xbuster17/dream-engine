@@ -28,15 +28,16 @@ dtex* dtex_ref(dtex* t){ if(!t) return NULL;
 
 
 dtex* dtex_open(char* filename){
-	if(!filename) return NULL;
-	SDL_Surface* sur = IMG_Load(filename);
-	if(sur == NULL){
-		DE_LOG("unable to load texture: %s", (char*)IMG_GetError());
-		return NULL;
-	}
-	dtex* ret = dtex_from_surface(sur);
-	SDL_FreeSurface(sur);
-	return ret;
+	return NULL;
+	// if(!filename) return NULL;
+	// SDL_Surface* sur = IMG_Load(filename);
+	// if(sur == NULL){
+	// 	DE_LOG("unable to load texture: %s", (char*)IMG_GetError());
+	// 	return NULL;
+	// }
+	// dtex* ret = dtex_from_surface(sur);
+	// SDL_FreeSurface(sur);
+	// return ret;
 }
 
 
@@ -46,7 +47,9 @@ dtex* dtex_new(v4c* pixels, int x, int y){
 }
 
 dtex* dtex_newf(v4c* pixels, int x, int y, GLenum format){
-	return dtex_newt(pixels,x,y,GL_RGBA, format, GL_UNSIGNED_BYTE);
+	int internal_format = format == GL_DEPTH_COMPONENT ? GL_DEPTH_COMPONENT : GL_RGBA;
+	int type = format == GL_DEPTH_COMPONENT ? GL_UNSIGNED_SHORT : GL_UNSIGNED_BYTE;
+	return dtex_newt(pixels,x,y,internal_format, format, type);
 }
 
 dtex* dtex_newt(v4c* pixels, int x, int y, GLenum internal_format, GLenum format, GLenum type){
@@ -65,6 +68,18 @@ dtex* dtex_newt(v4c* pixels, int x, int y, GLenum internal_format, GLenum format
 	tex->wrap_s = GL_REPEAT;
 	tex->wrap_t = GL_REPEAT;
 	// tex->type = GL_TEXTURE_2D;
+
+#ifdef __EMSCRIPTEN__ 
+	// int x = tex->x;
+	// int y = tex->y;
+	// bool pot = (x & (x-1)) == 0; 
+	// pot |= (y& (y-1)) == 0; 
+
+	// if(!pot) {
+		tex->wrap_s = GL_CLAMP_TO_EDGE;
+		tex->wrap_t = GL_CLAMP_TO_EDGE;
+	// }
+#endif
 
 	dtex_bind(tex, 7);
 
@@ -97,11 +112,13 @@ void dtex_bind(dtex* tex, int slot){
 	if(!tex){
 		Dtex_bound[slot] = NULL;
 		glActiveTexture(GL_TEXTURE0 + slot);
+		// glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		return;
 	};
 	Dtex_bound[slot] = tex;
 	glActiveTexture(GL_TEXTURE0 + slot);
+	// glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, tex->id);
 }
 
@@ -182,6 +199,18 @@ void dtex_filter(dtex* tex, GLenum min, GLenum mag){if(!tex) return;
 void dtex_wrap(dtex* tex, GLenum wrap_s, GLenum wrap_t){if(!tex) return;
 	if(!wrap_s) wrap_s = GL_REPEAT;
 	if(!wrap_t) wrap_t = GL_REPEAT;
+	
+// #ifdef __EMSCRIPTEN__ 
+// 	int x = tex->x;
+// 	int y = tex->y;
+// 	bool pot = (x & (x-1)) == 0; 
+// 	pot |= (y & (y-1)) == 0; 
+
+// 	if(!pot) {
+// 		wrap_s = GL_CLAMP_TO_EDGE;
+// 		wrap_t = GL_CLAMP_TO_EDGE;
+// 	}
+// #endif
 
 	glBindTexture(GL_TEXTURE_2D, tex->id);
 
@@ -221,14 +250,16 @@ dfbo* dfbo_new(int x, int y){
 
 	dfbo* fbo = malloc(sizeof(dfbo));
 	fbo->ref = 0;
+	fbo->color = NULL;
+	fbo->depth = NULL;
 	fbo->x = x;
 	fbo->y = y;
 	fbo->res = (float)y / (float)x;
 	glGenFramebuffers(1, &fbo->id);
-	glGenRenderbuffers(1, &fbo->rbo);
+	// glGenRenderbuffers(1, &fbo->rbo);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo->id);
 
-	glBindRenderbuffer(GL_RENDERBUFFER, fbo->rbo);
+	// glBindRenderbuffer(GL_RENDERBUFFER, fbo->rbo);
 
 #if defined GL_DEPTH24_STENCIL8_OES && !defined GL_DEPTH24_STENCIL8
 	#define GL_DEPTH24_STENCIL8 GL_DEPTH24_STENCIL8_OES
@@ -237,22 +268,26 @@ dfbo* dfbo_new(int x, int y){
 	// #ifdef ANDROID
 		// glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, x, y);
 	// #if _WIN32
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, x, y);
+		// glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, x, y);
+		// glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL, x, y);
 	// #endif
 
 	// glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, x, y);
 	// glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_STENCIL, x, y);
 
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fbo->rbo);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo->rbo);
+	// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fbo->rbo);
+	// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo->rbo);
 	// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT_OES, GL_RENDERBUFFER, fbo->rbo);
 	// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fbo->rbo);
 
-	fbo->color = dtex_new(NULL, x, y);
-	fbo->depth = NULL;
+	// fbo->color = dtex_new(NULL, x, y);
+	dtex* color = dtex_new(NULL, x, y);
+	// fbo->depth = NULL;
+	dtex* depth = dtex_newf(NULL, x, y, GL_DEPTH_COMPONENT);
+	// dtex* depth = NULL;
 	// fbo->depth = dtex_newf(NULL, x, y, GL_DEPTH_COMPONENT);
 	// fbo->depth = dtex_new_depth_stencil(NULL, x, y);
-	dfbo_tex(fbo, fbo->color, fbo->depth);
+	dfbo_tex(fbo, color, depth);
 
 
 	// fbo->depth = dtex_new(NULL, x, y);
@@ -263,13 +298,13 @@ dfbo* dfbo_new(int x, int y){
 
 	// dfbo_tex(fbo, fbo->color, NULL);
 
-
+	dfbo_bind(fbo);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-GLenum status=glCheckFramebufferStatus(GL_FRAMEBUFFER);
-if (status!=GL_FRAMEBUFFER_COMPLETE){
-	DE_LOGE("incomplete fbo!");
-}
+	GLenum status=glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status!=GL_FRAMEBUFFER_COMPLETE){
+		DE_LOGE("incomplete fbo!");
+	}
 
 
 	dfbo_bind(prevfbo);
@@ -298,9 +333,21 @@ int dfbo_free(dfbo* fbo){ if (!fbo) return 0;
 
 
 
+void dfbo_resize(dfbo* fbo, int x, int y){ assert(fbo);
+	// if (fbo->color) dtex_resize(fbo->color);
+	// if (fbo->depth) dtex_resize(fbo->depth);
+	if(x!=fbo->x || y!=fbo->y){
+
+		dtex* color = dtex_new(NULL, x,y);
+		dtex* depth = dtex_new(NULL, x,y);
+		dfbo_tex(fbo, color, depth);
+	}
+}
+
 
 
 void dfbo_bind(dfbo* fbo){
+	Dfbo_bound=fbo;
 	De.fbo = fbo;
 	if (fbo){
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo->id);
@@ -320,13 +367,25 @@ void dfbo_bind(dfbo* fbo){
 
 
 
-void dfbo_tex(dfbo* fbo, dtex* color, dtex* depth){if(!fbo) return;
+void dfbo_tex(dfbo* fbo, dtex* color, dtex* depth){ assert(fbo);
 	dfbo* prevfbo = Dfbo_bound;
+
+if(fbo->color) dtex_free(fbo->color);
+if(fbo->depth) dtex_free(fbo->depth);
+
+fbo->color=color;
+fbo->depth=depth;
+
 	dfbo_bind(fbo);
 	dtex* prev6 = Dtex_bound[6];
 	dtex* prev7 = Dtex_bound[7];
 
+	fbo->x = color->x;
+	fbo->y = color->y;
+	fbo->res = (float)fbo->y / (float)fbo->x;
+
 	if(color){
+
 		dtex_bind(color, 6);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
 			GL_TEXTURE_2D, color->id, 0);
@@ -349,7 +408,7 @@ void dfbo_tex(dfbo* fbo, dtex* color, dtex* depth){if(!fbo) return;
 
 
 
-void dfbo_draw(dfbo* fbo){
+void dfbo_draw(dfbo* fbo){ assert(fbo);
 	// dfbo_bind(fbo);
 	// if(fbo->id)glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo->rbo);
 
@@ -358,6 +417,90 @@ void dfbo_draw(dfbo* fbo){
 	// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
 
 	dtex_draw(fbo->color);
+}
+
+
+#include "vao.h"
+#include "shd.h"
+#include "gl.h"
+static dvao* tex_draw_vao;
+static dshd* tex_draw_shd;
+static dshd* tex_draw_depth_shd;
+static v4f tex_draw_verts[6];
+static int tex_draw_unit = 7;
+static float tex_draw_alpha = 1.f;
+static dshd* tex_draw_shd;
+
+bool tex_draw_depth_inited=false;
+
+void dfbo_draw_depth(dfbo* fbo, float alpha){ assert(fbo);
+	// dfbo_bind(fbo);
+	// if(fbo->id)glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fbo->rbo);
+
+	// dtex_draw(fbo->color);
+	// dfbo_bind(0);
+	// glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+	if(!tex_draw_depth_inited){
+		tex_draw_depth_inited = true;
+		tex_draw_verts[0] = (v4f){-1,-1,0,0};
+		tex_draw_verts[1] = (v4f){1, -1,1,0};
+		tex_draw_verts[2] = (v4f){-1, 1,0,1};
+		tex_draw_verts[3] = tex_draw_verts[2];
+		tex_draw_verts[4] = tex_draw_verts[1];
+		tex_draw_verts[5] = (v4f){1,1,1,1};
+
+		void* tex_draw_vert_buf[] = {tex_draw_verts};
+		if(!tex_draw_vao) tex_draw_vao = dvao_newr("f2p,f2tc", tex_draw_vert_buf, 6, GL_TRIANGLES);
+		tex_draw_depth_shd = dshd_new(
+			DE_SHD_HEADERV QUOTE(
+				attribute vec2 pos;
+				attribute vec2 tc;
+				varying vec2 vtc;
+				void main(){
+					vtc = tc;
+					gl_Position = vec4(pos.xy, 0.0, 1.0);
+				}
+			),
+			DE_SHD_HEADERF QUOTE(
+				uniform sampler2D tex;
+				uniform float alpha;
+				varying vec2 vtc;
+				void main(){
+					vec4 tcol=texture2D(tex, vtc);
+					// if(tcol.a==0.0) discard;
+					tcol.a *= alpha;
+					gl_FragColor = tcol;
+				}
+			)
+		);
+		dshd_unif(tex_draw_depth_shd, "tex", &tex_draw_unit);
+		dshd_unif(tex_draw_depth_shd, "alpha", &tex_draw_alpha);
+	}
+
+	dtex* prev_tex = Dtex_bound[tex_draw_unit];
+
+	dcullf(0);
+	dblend(0);
+	// ddepth(0,0);
+
+	tex_draw_alpha = alpha;
+
+	dtex_bind(fbo->depth, tex_draw_unit);
+	dshd_bind(tex_draw_depth_shd);
+	dshd_update(tex_draw_depth_shd);
+	dvao_draw(tex_draw_vao, 0, 0, 0);
+
+	dtex_bind(prev_tex, tex_draw_unit);
+
+	dblend(0);
+
+	
+
+}
+
+
+dfbo* dfbo_bound(void){
+	return De.fbo;
 }
 
 
@@ -386,16 +529,6 @@ void dfbo_draw(dfbo* fbo){
 
 
 
-
-
-#include "vao.h"
-#include "shd.h"
-#include "gl.h"
-static dvao* tex_draw_vao;
-static dshd* tex_draw_shd;
-static v4f tex_draw_verts[6];
-static int tex_draw_unit = 7;
-static float tex_draw_alpha = 1.f;
 
 bool tex_draw_inited = false;
 
@@ -458,3 +591,5 @@ void dtex_drawa(dtex* tex, float alpha){
 
 	dblend(0);
 }
+
+

@@ -1,7 +1,7 @@
 #include "glext.h"
 
-#ifndef _WIN32
-// defined (ANDROID)
+// #ifndef _WIN32 || __EMSCRIPTEN__
+#if defined (ANDROID)
 
 #include "../libs.h"
 #include "../common/log.h"
@@ -16,15 +16,7 @@ PFNGLISVERTEXARRAYOESPROC       glIsVertexArray;
 static char _inited = 0;
 static void* _libhandle;
 
-void dandroid_glext_init(void){
-// glBindVertexArray = glBindVertexArrayOES;
-// glDeleteVertexArrays = glDeleteVertexArraysOES;
-// glGenVertexArrays = glGenVertexArraysOES;
-// glIsVertexArray = glIsVertexArrayOES;
-
-	if (_inited) return;
-
-	_inited = 1;
+void dandroid_glext_init(void){ if (_inited) return; _inited = 1;
 
 	// if(De.gles_v2)
 	_libhandle = dlopen( "libGLESv2.so", RTLD_LAZY | RTLD_GLOBAL );
@@ -70,7 +62,7 @@ void dandroid_glext_quit(void){
 
 
 
-#else // windows
+#else // windows || emcc
 
 void dandroid_glext_init(void){return;}
 void dandroid_glext_quit(void){return;}

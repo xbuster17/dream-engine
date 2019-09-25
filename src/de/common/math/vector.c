@@ -60,11 +60,16 @@ void v2c_print(v2c v){printf(V2_PRINT_BODY("%c"));}
 
 /* RANDOM */
 #define V4_RAND() {rand(),rand(),rand(),rand()}
+#define V3_RAND() {rand(),rand(),rand(),0}
 #define V2_RAND() {rand(),rand()}
 v4d v4d_rand(void){return (v4d)V4_RAND()/(double)RAND_MAX;}
 v4f v4f_rand(void){return (v4f)V4_RAND()/(float)RAND_MAX;}
 v4i v4i_rand(void){return (v4i)V4_RAND();}
 v4c v4c_rand(void){return (v4c)V4_RAND();}
+v4d v3d_rand(void){return (v4d)V3_RAND()/(double)RAND_MAX;}
+v4f v3f_rand(void){return (v4f)V3_RAND()/(float)RAND_MAX;}
+v4i v3i_rand(void){return (v4i)V3_RAND();}
+v4c v3c_rand(void){return (v4c)V3_RAND();}
 v2d v2d_rand(void){return (v2d)V2_RAND()/(double)RAND_MAX;}
 v2f v2f_rand(void){return (v2f)V2_RAND()/(float)RAND_MAX;}
 v2i v2i_rand(void){return (v2i)V2_RAND();}
@@ -89,7 +94,7 @@ float  v2c_dot(v2c v, v2c w){v *= w; return v[0] + v[1];}
 /* CROSS PRODUCT */
 #define V4_CROSS_BODY(res,v1,v2) \
 	res[0] = (v1[1]* v2[2]- v1[2]* v2[1]);\
-	res[1] =-(v1[0]* v2[2]- v1[2]* v2[0]);\
+	res[1] = (v1[2]* v2[0]- v1[0]* v2[2]);\
 	res[2] = (v1[0]* v2[1]- v1[1]* v2[0]);\
 	res[3] = 0;
 v4d v3d_cross(v4d v1, v4d v2){v4d res; V4_CROSS_BODY(res,v1,v2); return res;}
@@ -366,16 +371,44 @@ m4f m4f_proj(
 	float fov, float aspect_ratio,
 	float near, float far
 ){
-	float h = cosf(0.5f*fov)/sinf(0.5f*fov);
-	float w = h * aspect_ratio;
-	float a = - (near+far)/(near-far);
-	float b = - ((2*far*near)/(far-near));
-	return (m4f){
-		w, 0, 0, 0,
-		0, h, 0, 0,
-		0, 0, a, 1,
-		0, 0, b, 0
-	};
+	// float h = cosf(0.5f*fov)/sinf(0.5f*fov);
+	// float w = h * aspect_ratio;
+	// float a = - (near+far)/(near-far);
+	// float b = - ((2*far*near)/(far-near));
+	// return (m4f){
+	// 	w, 0, 0, 0,
+	// 	0, h, 0, 0,
+	// 	0, 0, a, 1,
+	// 	0, 0, b, 0
+	// };
+
+
+  const float h = 1.0f/tan(fov*.5*(M_PI/180.0));
+  float neg_depth = near-far;
+m4f m=M4F_ID;
+  m[0] = h / (1.0/aspect_ratio);
+  m[1] = 0;
+  m[2] = 0;
+  m[3] = 0;
+
+  m[4] = 0;
+  m[5] = h;
+  m[6] = 0;
+  m[7] = 0;
+
+  m[8] = 0;
+  m[9] = 0;
+  m[10] = (far + near)/neg_depth;
+  m[11] = -1;
+
+  m[12] = 0;
+  m[13] = 0;
+  m[14] = 2.0f*(near*far)/neg_depth;
+  m[15] = 0;
+
+  return m;
+
+
 }
 
 
@@ -414,6 +447,24 @@ m4f m4f_timodel(m4f M){
 }
 
 
+//from wikipedia
+m4f m4f_ortho(float left, float right, float top, float bottom, float near, float far){
+	return (m4f){
+		2.0/(right-left), 0,                0,               -(right+left)/(right-left),
+		0,                2.0/(top-bottom), 0,               -(top+bottom)/(top-bottom),
+		0,                0,                -2.0/(far-near), -(far+near)/(far-near),
+		0,                0,                0,               1,
+	};
+}
+
+m4f m4f_invortho(float left, float right, float top, float bottom, float near, float far){
+	return (m4f){
+		(right-left)/2.0, 0,                0,               (right+left)/2.0,
+		0,                (top-bottom)/2.0, 0,               (top+bottom)/2.0,
+		0,                0,                (far-near)/-2.0, -(far+near)/2.0,
+		0,                0,                0,               1,
+	};
+}
 
 //fixme
 m4f m4f_ortho_project(v2f size, float near, float far){
@@ -451,20 +502,66 @@ m4f m4f_look_at(v4f eye, v4f center, v4f up){
 // 	};
 
 
-	v4f F = center - eye;
-	v4f f = v4f_normalize(F);
-	up = v4f_normalize(up);
-	v4f s = v4f_cross(f,up);
-	v4f u = v4f_cross(v4f_normalize(s),f);
-	m4f ret = {
-		 s[0],  s[1],  s[2], 0,
-		 u[0],  u[1],  u[2], 0,
-		-f[0], -f[1], -f[2], 0,
-		    0,     0,     0, 1
-	};
-
-	return ret;
+	// v4f F = center - eye;
+	// v4f f = v4f_normalize(F);
+	// up = v4f_normalize(up);
+	// v4f s = v4f_cross(f,up);
+	// v4f u = v4f_cross(v4f_normalize(s),f);
+	// m4f ret = {
+	// 	 s[0],  s[1],  s[2], 0,
+	// 	 u[0],  u[1],  u[2], 0,
+	// 	-f[0], -f[1], -f[2], 0,
+	// 	    0,     0,     0, 1
+	// };
+center[3]=0;
+eye[3]=0;
+up[3]=0;
+    v4f f = v3f_normalize(center - eye);
+    // v4f f = v3f_normalize(eye - center); // huh?
+    v4f u = v3f_normalize(up);
+    v4f s = v3f_normalize(v3f_cross(f, u));
+    u = v3f_cross(s, f);
+m4f ret=m4f_id();
+    // mat4x4 Result(1);
+    // ret[0][0] = s.x;
+    // ret[1][0] = s.y;
+    // ret[2][0] = s.z;
+    // ret[0][1] = u.x;
+    // ret[1][1] = u.y;
+    // ret[2][1] = u.z;
+    // ret[0][2] =-f.x;
+    // ret[1][2] =-f.y;
+    // ret[2][2] =-f.z;
+    // ret[3][0] =-v3f_dot(s, eye);
+    // ret[3][1] =-v3f_dot(u, eye);
+    // ret[3][2] = v3f_dot(f, eye
+    ret[0*4+0] = s[0]; // right handed
+    ret[1*4+0] = s[1];
+    ret[2*4+0] = s[2];
+    ret[0*4+1] = u[0];
+    ret[1*4+1] = u[1];
+    ret[2*4+1] = u[2];
+    ret[0*4+2] =-f[0];
+    ret[1*4+2] =-f[1];
+    ret[2*4+2] =-f[2];
+    ret[3*4+0] =-v3f_dot(s, eye);
+    ret[3*4+1] =-v3f_dot(u, eye);
+    ret[3*4+2] = v3f_dot(f, eye);
+    // ret[0*4+0] = s[0]; // left handed
+    // ret[1*4+0] = s[1];
+    // ret[2*4+0] = s[2];
+    // ret[0*4+1] = u[0];
+    // ret[1*4+1] = u[1];
+    // ret[2*4+1] = u[2];
+    // ret[0*4+2] = f[0];
+    // ret[1*4+2] = f[1];
+    // ret[2*4+2] = f[2];
+    // ret[3*4+0] =-v3f_dot(s, eye);
+    // ret[3*4+1] =-v3f_dot(u, eye);
+    // ret[3*4+2] =-v3f_dot(f, eye);
+    return ret;
 }
+
 
 /*
 	another matrix multiplication

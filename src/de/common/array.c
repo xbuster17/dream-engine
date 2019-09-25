@@ -76,8 +76,8 @@ void darr_set(darr* a, uint slot, void* val){ DARR_VALIDATE(a);
 
 // fixme ?
 void darr_set_part(darr* a, uint start, uint end, void* vals){ DARR_VALIDATE(a);
-	start = clamp(start, 0, a->len-1);
-	end   = clamp(end,   0, a->len-1);
+	start = CLAMP(start, 0, a->len-1);
+	end   = CLAMP(end,   0, a->len-1);
 	if(start > end) return;
 
 	uint i;
@@ -138,8 +138,8 @@ darr* darr_dup(darr* src){ DARR_VALIDATE(src);
 }
 
 darr* darr_dup_part(darr* src, uint start, uint end){ DARR_VALIDATE(src);
-	start = clamp(start, 0, src->len-1);
-	end   = clamp(end,   0, src->len-1);
+	start = CLAMP(start, 0, src->len-1);
+	end   = CLAMP(end,   0, src->len-1);
 
 	if(start < end)
 		return darr_new(src->type, end - start, src->data + start*src->type);
@@ -181,8 +181,8 @@ void darr_insa_part(darr* dst, uint slot, darr* src, uint src_start, uint src_en
 }
 
 void darr_ins_part(darr* a, uint start, uint end, void** values){ DARR_VALIDATE(a);
-	start = clamp(start, 0, a->len);
-	end   = clamp(end,   0, a->len);
+	start = CLAMP(start, 0, a->len);
+	end   = CLAMP(end,   0, a->len);
 
 	if(start > end) return;
 

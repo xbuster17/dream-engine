@@ -5,12 +5,12 @@
 int dinput_watcher(void* udata, SDL_Event* event);
 
 void dinput_init(void){
-	SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
+//	SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
 
 	De.fingers_down = 0;
 	De.finger_click = 0;
 	De.finger_click_pos = v2f_0;
-	De.finger_click_time = 100;
+	De.finger_click_time = 250;
 
 	int num_scancodes;
 	SDL_GetKeyboardState( &num_scancodes );
@@ -245,7 +245,11 @@ Uint32 dinput_usek(enum dinput_keycode keycode){
 
 
 
-void dmouse_grab(bool b){ SDL_SetRelativeMouseMode(b); }
+void dmouse_grab(bool b){ 
+	#ifndef __EMSCRIPTEN__ // TODO crashes 
+	SDL_SetRelativeMouseMode(b);
+	#endif
+}
 
 
 
