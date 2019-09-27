@@ -63,6 +63,9 @@ typedef unsigned short ushort;
 
 #ifndef __EMSCRIPTEN__
 #define EMSCRIPTEN_KEEPALIVE
+#else
+#include <emscripten.h>
+#include <emscripten/html5.h>
 #endif
 
 // ensure 'SDL_main' is defined and 'main' is not

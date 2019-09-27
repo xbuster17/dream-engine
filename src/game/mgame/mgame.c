@@ -235,7 +235,7 @@ dshd_unif(skyshd, "proj", &De.cam.proj);
 	G.player.rad = .075/2;
 	// G.player.rad = .25/4.0;
 	// G.player.height = .025f;
-	G.player.height = .1f;
+	G.player.height = .15f;
 
 	// G.hmap0 = hmap_new(hmap_res,hmap_res, hfunc, 0);
 	G.hmap0 = hmap_new(hmap_res,hmap_res, hfunc, HMAP_DYNAMIC | HMAP_FIXED);
@@ -824,12 +824,15 @@ mcyl_regen(plym, plymf);
 
 // player_update();
 	// if(dusek(DK_ESC)) { mouse_grab = (mouse_grab+1) %2;}
-	if(dusek('q')) { mouse_grab = (mouse_grab+1) %2;}
+	if(dusek('q')) { 
+		mouse_grab = (mouse_grab+1) %2;
+		dmouse_grab(mouse_grab);
+	}
 
 //	#ifndef __EMSCRIPTEN__
 
-	if(mouse_grab) dmouse_grab(1);
-	else dmouse_grab(0);
+	// if(mouse_grab) dmouse_grab(1);
+	// else dmouse_grab(0);
 
 //	#endif
 
@@ -1054,15 +1057,28 @@ mcyl_regen(plym, plymf);
 	De.cam.fov = PI*25.0;
 	// v4f camtrans = {0,.5,-16,0};
 	// v4f camtrans = {0,1.75,-4.96,0};
-	v4f camtrans = {0,0.5,2.96,0};
-	camtrans *= 0.975f;
+	v4f camtrans = {0,1.5,2.96,0};
+	
+	static float zoom = 0.975f;
+	v4f phead ={0,.1,0,0};
+	// zoom+=De.mouse.scroll[1]*.1;
+	// if(De.mouse.scroll_total[1]>=3){
+	// 	De.mouse.scroll_total[1]=3;
+	// 	camtrans[1]=.25;
+	// 	camtrans[0]=0;
+	// 	camtrans[2]=.1;
+	// } else 
+	zoom = MAX(LERP(zoom, ((-De.mouse.scroll_total[1]+3)*.05), .5),.0001f) ;
+	// De.mouse.scroll[1]=0;
+	camtrans *= zoom;
+
 
 	v4f camrot = {G.player.rot[0]+.25, G.player.rot[1], 0,0};
 
-	De.cam.pos = G.player.pos + v4f_mtmul(camtrans, m4f_rotation(camrot));
+	De.cam.pos = G.player.pos+phead + v4f_mtmul(camtrans, m4f_rotation(camrot));
 	
 	// De.cam.pos = G.player.pos + (v4f){0,30,10,0};
-	De.cam.tar = G.player.pos;
+	De.cam.tar = G.player.pos+phead;
 	// De.cam.tar[1]+=10.0;
 	// De.cam.pos = G.sunpos;
 
@@ -1168,7 +1184,7 @@ plym->mesh->sca = (v4f){.5,.5,.5,1}*.5f;
 // plym->mesh->sca[3] = 1;
 
 plym->mesh->pos = G.player.pos;
-plym->mesh->pos[1] -= 0.05;
+plym->mesh->pos[1] -= 0.075;
 plym->mesh->rot[1] = -G.player.rot[1];
 // plym->mesh->rot[1] = G.player.rot;
 mcyl_update(plym);

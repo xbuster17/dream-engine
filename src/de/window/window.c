@@ -76,7 +76,7 @@ int dwindow_init(int x, int y, int flags){
 	dwindow_get_gl_info();
 
 
-	#ifdef ANDROID
+	#if defined ANDROID || defined __EMSCRIPTEN__
 		dwindow_fullscreen(true);
 	#endif
 
@@ -140,6 +140,7 @@ void dwindow_pos(int x, int y){ if(De.is_android) return;
 void dwindow_resized(int x, int y){
 	assert(x>0);
 	assert(y>0);
+	printf("window resized %i,%i\n",x,y);
 	dfbo_bind(0);
 	dviewport(x, y);
 	De.size = (v2i){x, y};
@@ -159,6 +160,10 @@ bool dwindow_focus(void){
 
 void dwindow_fullscreen(bool b){
 	SDL_SetWindowFullscreen(De.win, b);
+
+	#if defined __EMSCRIPTEN__
+	emscripten_enter_soft_fullscreen("canvas", NULL);
+	#endif
 }
 
 

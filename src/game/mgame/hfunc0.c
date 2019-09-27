@@ -64,7 +64,7 @@ float hfunc(float x,float y){
 	// y=fmodf(y+G.ftime, 6);
 	float hfvv = hfv_read(x,y);
 
-	// if (x>-2 && x<6 && y>-1 && y<6) return 4;
+	if (x>-2 && x<6 && y>-1 && y<6) return 4;
 
 	// return 0;
 
@@ -77,7 +77,7 @@ float hfunc(float x,float y){
 	// return -v2d_len(p)/2 + noise2((p+G.frame/50.f)/10.f);
 	v2i per={10,10};
 	double bign=pow(noise2p(p*.01, per), 2.0)*91.0;
-	return hfvv+bign+noise2p(p/(bign+5.2+G.frame/300.0), per)*1.3;
+	// return hfvv+bign+noise2p(p/(bign+5.2+G.frame/300.0), per)*1.3;
 
 	// v4f tp = v4f_mmul((v4f){x,0,y,0}, m4f_inverse(G.hmap0->m));
 	// v4f tp = ((v4f){x,0,y,0})/G.hmap0->sca;
@@ -89,19 +89,19 @@ float hfunc(float x,float y){
 	float n1 = noise3(p3/10.f)*.3;
 	n1*=n1;
 
-	n1= n1-v2d_len(p)/2;
+	// n1= n1-v2d_len(p)/2;
 	if (fmodf(v2f_len(
 			(v2f){x,y} - (v2f){0,3}
 		// (v2f){x,y} - (v2f){G.enm[0].pos[0], G.enm[0].pos[1]}
 			), 5) <2
 		) n1 = n1 + 1;
 	
-	// n1 += v2d_len(p)>15? -3: 0;
+	n1 += v2d_len(p)>15? -3: 0;
 	if(v2d_len(p-10.0)<25) n1+= CLAMP(noise2(p/100)+.5,0,100)*8;
 	// if(v2d_len(p-10.0)<150) n1+= .1 * ( 2*pow(p[0]/10, 4.0)+pow(p[1]/10, 2.0) );
 	if(hfvv > .1)
-		n1 /= hfvv*10.0;
-		// return -.1 + hfvv / 3.0;
+		n1 /= hfvv*4.0;
+		// return hfvv / 2.0;
 	return n1;
 
 	float h = n1;

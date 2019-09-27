@@ -10,7 +10,7 @@ void dcam_reset(void){
 	De.cam.proj = (m4f){1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
 	De.cam.vp = (m4f){1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
 	De.cam.fov = PI/6.f;
-	De.cam.near_clip = .5;
+	De.cam.near_clip = .05;
 	De.cam.far_clip = 500;
 	De.cam.res = 1;
 	dcam_update();

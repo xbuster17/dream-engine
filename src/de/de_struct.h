@@ -45,7 +45,9 @@ extern struct De{
 		Uint8 b3;
 		v2i abs;
 		v2i rel;
-		v2i scroll;
+		v2i scroll; // x/y scrolling, resets on update
+		v2i scroll_total;
+		bool grab;
 	} mouse;
 
 

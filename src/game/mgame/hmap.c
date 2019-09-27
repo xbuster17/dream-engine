@@ -67,7 +67,7 @@ v4f fcol;
 // #define v4_cast(v, target_type) ((target_type){(v)[0], (v)[1], (v)[2], (v)[3]})
 // fcol=(v4f){150,200,50}*(fmodf(hash2(i/4,j/4)/123123.f, .75f)+.25f);
 // fcol=(v4f){150,200,50}*(fmodf(hash2(i/4,j/4)/123123.f, .75f)+.25f);
-fcol=(v4f){200,150,50}*(fmodf(hash2(i/8,j/8)/123123.f, .75f)+.25f);
+fcol=(v4f){200,250,150}*(fmodf(hash2(i/8,j/8)/123123.f, .75f)+.25f);
 v4c ccol={fcol[0],fcol[1],fcol[2]};
 					hmap_texpx[i*tres + j] = ccol;
 					hmap_texpx[i*tres + j][3] = 255;

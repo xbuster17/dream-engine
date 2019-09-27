@@ -9,10 +9,10 @@
           height: 100%;
       }
       body {
-          display: -webkit-flex;
+/*          display: -webkit-flex;
           display: flex;
-          -webkit-flex-direction: column;
-          flex-direction: column;
+          -webkit-flex-direction: column;*/
+          /*flex-direction: column;*/
           width: 100%;
           height: 100%;
           font-family: sans-serif;
@@ -21,29 +21,30 @@
           overflow: hidden;
       }
       #canvas {
-          -webkit-flex: 1;
-          flex: 1;
+          /*-webkit-flex: 1;*/
+          /*flex: 1;*/
           width: 100%;
-          min-height: 10%;
+          height: 100%;
+          /*min-height: 10%;*/
       }
       #status {
-          background-color: hsl(60,20%,90%);
+          /*background-color: hsl(60,20%,90%);*/
           text-align: center;
           height: 0;
       }
       #output {
-          background-color: hsla(240,10%,10%,0.0);
+          /*background-color: hsla(240,10%,10%,0.0);*/
           color: black;
           border: none;
-          padding: 0 1em;
-          position: absolute;
-          right: 0; width: 50%;
+          /*padding: 0 1em;*/
+          /*position: absolute;*/
+          /*right: 0; width: 50%;*/
           bottom: 0;
       }
     </style>
   </head>
   <body>
-    <div id="status">Downloading...</div>
+<!--     <div id="status">Downloading...</div> -->
     
     <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
 
@@ -51,24 +52,6 @@
     
     <script type='text/javascript'>
       var Module = {
-          // print: (function(text) {
-          //     var element = document.getElementById('output');
-          //     if (element) element.value = ''; // clear browser cache
-          //     return function(text) {
-          //         if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
-          //         console.log(text);
-          //         if (element) {
-          //             element.value += text + "\n";
-          //             element.scrollTop = element.scrollHeight; // focus on bottom
-          //         }
-          //     };
-          // })(),
-          // printErr: function(text) { console.error(text); },
-          // setStatus: (function(text) {
-          //     var element = document.getElementById('status');
-          //     if (element) element.textContent = ''; // clear browser cache
-          //     return function(text) { element.textContent = text; };
-          // })(),
           canvas: document.getElementById('canvas'),
       };
     </script>
@@ -84,18 +67,5 @@
       // window.dispatchEvent(new Event('resize'));
     </script>
 
-
-    <!-- <script src="/libs/socket.io.js"></script> -->
-    <script src="libs/socket.io.js"></script>
-    <script>
-    var port = 23416;
-    var socket = io.connect('https://www.elysiandusk.com:' + port, { 'forceNew': true });
-    socket.on('messages', function(data) {
-        console.log("Mensaje recibido: " + data)
-    });
-    socket.on('connect', function(){
-        socket.emit('messages', "Hello!");
-    });
-    </script>
   </body>
 </html>

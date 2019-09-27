@@ -6,12 +6,12 @@ int dinput_watcher(void* udata, SDL_Event* event);
 
 void dinput_init(void){
 //	SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
+	De.mouse.grab=0;
 
 	De.fingers_down = 0;
 	De.finger_click = 0;
 	De.finger_click_pos = v2f_0;
 	De.finger_click_time = 250;
-
 	int num_scancodes;
 	SDL_GetKeyboardState( &num_scancodes );
 	De.keyboard_num_scancodes = num_scancodes;
@@ -44,6 +44,8 @@ void dinput_quit(void){
 
 void dinput_update(void){
 	De.mouse.rel *= 0;
+	De.mouse.scroll[0]=0;
+	De.mouse.scroll[1]=0;
 	/* hack to fix android screen rotation */
 	#if ANDROID
 		int x,y;
@@ -70,6 +72,11 @@ void dinput_update(void){
 
 int dinput_watcher(void* udata, SDL_Event* e){ (void) udata;
 	int keycode_index = 0;
+	// if(De.mouse.grab){
+	// 	De.mouse.rel*=0;
+	// 	De.mouse.abs*=0;
+	// }
+
 	switch(e->type){
 
 		case SDL_QUIT: De.should_quit = true; break;
@@ -119,6 +126,8 @@ int dinput_watcher(void* udata, SDL_Event* e){ (void) udata;
 		case SDL_MOUSEWHEEL:
 			De.mouse.scroll[0] = e->wheel.x;
 			De.mouse.scroll[1] = e->wheel.y;
+			De.mouse.scroll_total[0] += e->wheel.x;
+			De.mouse.scroll_total[1] += e->wheel.y;
 			break;
 
 
@@ -178,6 +187,7 @@ int dinput_watcher(void* udata, SDL_Event* e){ (void) udata;
 		case SDL_WINDOWEVENT:
 			switch(e->window.event){
 				case SDL_WINDOWEVENT_SIZE_CHANGED:
+				case SDL_WINDOWEVENT_RESIZED:
 					dwindow_resized(e->window.data1, e->window.data2);
 					break;
 				case SDL_WINDOWEVENT_CLOSE: De.should_quit = true;
@@ -185,8 +195,10 @@ int dinput_watcher(void* udata, SDL_Event* e){ (void) udata;
 
 				case SDL_WINDOWEVENT_ENTER:
 				case SDL_WINDOWEVENT_TAKE_FOCUS:
-				case SDL_WINDOWEVENT_FOCUS_GAINED: De.window_focus = true; break;
-				case SDL_WINDOWEVENT_FOCUS_LOST: De.window_focus = false; break;
+				case SDL_WINDOWEVENT_FOCUS_GAINED: De.window_focus = true; 
+					break;
+				case SDL_WINDOWEVENT_FOCUS_LOST: De.window_focus = false; 
+					break;
 				case SDL_WINDOWEVENT_MOVED:
 					De.wpos = (v2i){e->window.data1, e->window.data2};
 					break;
@@ -246,7 +258,16 @@ Uint32 dinput_usek(enum dinput_keycode keycode){
 
 
 void dmouse_grab(bool b){ 
-	#ifndef __EMSCRIPTEN__ // TODO crashes 
+	De.mouse.grab=b;
+	#ifdef __EMSCRIPTEN__ // TODO fixme drift
+	if (b){
+		emscripten_request_pointerlock("canvas", true);
+		dmouse_hide(1);
+	}else{ 
+		emscripten_exit_pointerlock();
+		dmouse_hide(0);
+	}
+	#else
 	SDL_SetRelativeMouseMode(b);
 	#endif
 }
