@@ -2,18 +2,18 @@
 
 // some bullets:
 bullet bullet_0 = {
-	pos:{0,0,0,0}, col0:{0,0,0,0}, col1:{0,0,0,0},
-	vel:{0,0,0,0}, acc:{0,0,0,0}, force:{0,0,0,0},
-	rad:0, tvel:0, tacc:0, lifetime:2, dmg:0,
-	inited:0, frame:0,
-	run: NULL
+	.pos = {0,0,0,0}, .col0 = {0,0,0,0}, .col1 = {0,0,0,0},
+	.vel = {0,0,0,0}, .acc = {0,0,0,0}, .force = {0,0,0,0},
+	.rad = 0, .tvel = 0, .tacc = 0, .lifetime = 2, .dmg = 0,
+	.inited = 0, .frame = 0,
+	.run =  NULL
 };
 bullet bullet_default = {
-	pos:{0,0,0,0}, col0:{255,0,0,255}, col1:{255,255,255,255},
-	vel:{0,0,0,0}, acc:{0,-9,0,0}, force:{0,0,0,0},
-	rad:0, tvel:50, tacc:50, lifetime:2, dmg:0,
-	inited:0, frame:0,
-	run: NULL
+	.pos = {0,0,0,0}, .col0 = {255,0,0,255}, .col1 = {255,255,255,255},
+	.vel = {0,0,0,0}, .acc = {0,-9,0,0}, .force = {0,0,0,0},
+	.rad = 0, .tvel = 50, .tacc = 50, .lifetime = 2, .dmg = 0,
+	.inited = 0, .frame = 0,
+	.run =  NULL
 };
 
 

@@ -53,23 +53,23 @@ extern bullet bullet_0;
 
 
 #define def_bullet_blank \
-	pos:{0,0,0,0}, col0:{0,0,0,0}, col1:{0,0,0,0},    \
-	vel:{0,0,0,0}, acc:{0,0,0,0}, force:{0,0,0,0},    \
-	rad:0, tvel:0, tacc:0, lifetime:0, dmg:0,         \
-	inited:false, frame:0, buf:NULL
+	.pos = {0,0,0,0}, .col0 = {0,0,0,0}, .col1 = {0,0,0,0},    \
+	.vel = {0,0,0,0}, .acc = {0,0,0,0}, .force = {0,0,0,0},    \
+	.rad = 0, .tvel = 0, .tacc = 0, .lifetime = 0, .dmg = 0,         \
+	.inited = false, .frame = 0, .buf = NULL
 
 #define def_bullet_def \
-	pos:{0,0,0,0}, col0:{255,0,0,255}, col1:{255,255,255,255},    \
-	vel:{0,0,0,0}, acc:{0,0,0,0}, force:{0,0,0,0},    \
-	rad:1, tvel:0, tacc:0, lifetime:1, dmg:0,         \
-	inited:false, frame:0, buf:NULL
+	.pos = {0,0,0,0}, .col0 = {255,0,0,255}, .col1 = {255,255,255,255},    \
+	.vel = {0,0,0,0}, .acc = {0,0,0,0}, .force = {0,0,0,0},    \
+	.rad = 1, .tvel = 0, .tacc = 0, .lifetime = 1, .dmg = 0,         \
+	.inited = false, .frame = 0, .buf = NULL
 
 #define decl_bullet(name) \
 extern bullet name;\
 void name ## __run(bullet* in);
 
 #define def_bullet(name) \
-bullet name = { def_bullet_def, run: name ## __run, type: __COUNTER__ };\
+bullet name = { def_bullet_def, .run =  name ## __run, .type =  __COUNTER__ };\
 void name ## __run(bullet* in)/*{your run code here}*/
 
 //creator helpers
