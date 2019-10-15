@@ -1638,7 +1638,7 @@ void wschat(void ){
   // const char *chat_server_url = "ws://xb17.duckdns.org:1717";
   // const char *chat_server_url = "tcp://xb17.duckdns.org:1717";
   // const char *chat_server_url = "tcp:127.0.0.1:1717";
-  const char *chat_server_url = "tcp:192.168.0.220:1717";
+  const char *chat_server_url = "tcp://192.168.0.220:1717";
   // const char *chat_server_url = "ws://181.167.117.180:1717";
   // const char *chat_server_url = "ws://192.168.0.25:8000";
 
