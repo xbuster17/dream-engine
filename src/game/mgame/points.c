@@ -64,7 +64,7 @@ void pts_update(mpts* pts){ if(!pts || !pts->p) return;
 		pts->p[i].vel /= 1.03f;
 		
 		//attract
-		if( v3f_len2 (pts->p[i].pos - G.player.pos) < 2 /*&& v4f_len2(pts->p[i].vel)<1*/) { // attract
+		if( v3f_len2 (pts->p[i].pos - G.player.pos) < 5 /*&& v4f_len2(pts->p[i].vel)<1*/) { // attract
 			pts->p[i].vel= (pts->p[i].vel * 9 + v3f_normalize( G.player.pos - pts->p[i].pos ) *4)/10;
 		}
 		pts->p[i].vel += pts->p[i].acc * G.dt;

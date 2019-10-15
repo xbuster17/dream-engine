@@ -60,11 +60,13 @@ float hfunc(float x,float y){
 	// return 10* sin(fmodf(x,7) * fmodf(y,11) / (7*11) );
 //sample walker
 
+// return (abs(x-1.)<0.9)*5;
+
 	// x=fmodf(x+G.ftime, 6);
 	// y=fmodf(y+G.ftime, 6);
 	float hfvv = hfv_read(x,y);
 
-	if (x>-2 && x<6 && y>-1 && y<6) return 4;
+	if (x>-2 && x<6 && y>-1 && y<6) return .4;
 
 	// return 0;
 
@@ -86,7 +88,7 @@ float hfunc(float x,float y){
 	float yf = G.frame/50.f;
 	// float yf = 0;
 	v4d p3 = {p[0], p[1], yf};
-	float n1 = noise3(p3/10.f)*.3;
+	float n1 = noise3(p3/10.f)*.9;
 	n1*=n1;
 
 	// n1= n1-v2d_len(p)/2;

@@ -42,6 +42,8 @@ void hmap_draw(hmap*);
 float hmap_eval(hmap*, float x, float y); // approximates with cached heights
 float hmap_evald(hmap*, float x, float y, float* normal_x, float* normal_y, float* normal_z); // get normal
 
+v2i hmap_mouse(hmap*); // trace mouse pointer thru the map
+// EMSCRIPTEN_KEEPALIVE v2f hmap_sspoint(hmap*, v4f);
 // enum hmap_trans_effect{hmte_}
 // void hmap_trans(hmap*, float(*dst_func)(float x,float y), float time, enum hmap_trans_effect);
 

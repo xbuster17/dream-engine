@@ -36,10 +36,13 @@ float _spike = .3;
 hmap* hmap_new(int xres, int yres, float(*func)(float x, float y), enum hmap_mode mode){
 	if(!hmap_inited){
 		hmap_inited = true;
-		// hmap_vbuf = malloc(sizeof(v4f) * hmap_max_res*hmap_max_res * 6);
+		DE_LOG("%s\n",hmap_vshdsrc);
 		hmap_vbuf = malloc(sizeof(v4f) * hmap_max_res*hmap_max_res * 12);
-		// hmap_nbuf = malloc(sizeof(v4f) * hmap_max_res*hmap_max_res * 6);
 		hmap_nbuf = malloc(sizeof(v4f) * hmap_max_res*hmap_max_res * 12);
+		// hmap_vbuf = malloc(sizeof(v4f) * hmap_max_res*hmap_max_res * 6);
+		// hmap_nbuf = malloc(sizeof(v4f) * hmap_max_res*hmap_max_res * 6);
+
+
 		hmap_texpx = malloc(sizeof(v4c) * tres*tres);
 v4f fcol;
 //texture
@@ -54,7 +57,7 @@ v4f fcol;
 				// hmap_texpx[i*tres + j] = colors[rand()%num_colors];
 				// if(i < 1 || j < 1 || i > tres-1 || j > tres-1 || abs(i - (tres-j))<1 ) // line
 				// if((abs(i)==abs(j)) || (i==-j+tres) || i < 1 || j < 1 || i > tres-1 || j > tres-1 ) //cross
-				// if(i < 1 || j < 1 /*|| i >= tres-1 || j >= tres-1 */) 
+				// if(i < 1 || j < 1 /*|| i >= tres-1 || j >= tres-1 */)
 					// hmap_texpx[i*tres + j] = (v4c){255,255,255,255};
 					// hmap_texpx[i*tres + j] = v4c_0;
 				// else{
@@ -67,7 +70,8 @@ v4f fcol;
 // #define v4_cast(v, target_type) ((target_type){(v)[0], (v)[1], (v)[2], (v)[3]})
 // fcol=(v4f){150,200,50}*(fmodf(hash2(i/4,j/4)/123123.f, .75f)+.25f);
 // fcol=(v4f){150,200,50}*(fmodf(hash2(i/4,j/4)/123123.f, .75f)+.25f);
-fcol=(v4f){200,250,150}*(fmodf(hash2(i/8,j/8)/123123.f, .75f)+.25f);
+// fcol=(v4f){200,250,150}*(fmodf(hash2(i/8,j/8)/123123.f, .75f)+.25f);
+fcol=(v4f){200,250,150}*(fmodf(hash2(i/4,j/4)/123123.f, .75f)+.25f);
 v4c ccol={fcol[0],fcol[1],fcol[2]};
 					hmap_texpx[i*tres + j] = ccol;
 					hmap_texpx[i*tres + j][3] = 255;
@@ -87,13 +91,13 @@ v4c ccol={fcol[0],fcol[1],fcol[2]};
 		}
 
 		hmap_tex = dtex_new(hmap_texpx, tres,tres);
-		
+
 		dtex_bind(hmap_tex, zero);
 		// glGenerateMipmap(GL_TEXTURE_2D);
 		// dtex_wrap(hmap_tex, GL_REPEAT, GL_REPEAT);
 		// dtex_filter(hmap_tex, GL_NEAREST,GL_NEAREST);
-		// dtex_filter(hmap_tex, GL_LINEAR,GL_NEAREST);
-		dtex_filter(hmap_tex, GL_LINEAR,GL_LINEAR);
+		dtex_filter(hmap_tex, GL_LINEAR,GL_NEAREST);
+		// dtex_filter(hmap_tex, GL_LINEAR,GL_LINEAR);
 		// dtex_filter(hmap_tex, GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR);
 		// dtex_filter(hmap_tex, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST);
 		// dtex_filter(hmap_tex, GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST);
@@ -106,7 +110,7 @@ v4c ccol={fcol[0],fcol[1],fcol[2]};
 				// hmap_texpx[i*tres + j] = (v4c){200,150,64,128};
 				hmap_texpx[i*tres + j][3] = 128+64;
 				// if(!((j+i)%4))
-				if( (j+i)%2 || j%2 ) 
+				if( (j+i)%2 || j%2 )
 					hmap_texpx[i*tres + j][3] *= 0;
 				// hmap_texpx[i*tres + j][0] = ((j+i)%2) * 255;
 				// hmap_texpx[i*tres + j][3] = ((j+i)%2) * 255;
@@ -293,17 +297,17 @@ char select=0;
 	//fill derivs
 	// if(dx){
 	// 	switch (select){
-	// 		case 0: *dx = 2*(MAX(ha,h1)-h0); break;/*left*/ 
-	// 		case 1: *dx = h1-h0; break;/*bott*/ 
-	// 		case 2: *dx = h3-h2; break;/*top*/  
+	// 		case 0: *dx = 2*(MAX(ha,h1)-h0); break;/*left*/
+	// 		case 1: *dx = h1-h0; break;/*bott*/
+	// 		case 2: *dx = h3-h2; break;/*top*/
 	// 		case 3: *dx = 2*(h1-ha); break;/*right*/
 	// 	}
 	// }
 	// if(dz){
 	// 	switch (select){
-	// 		case 0: *dz = MAX(h2,ha)-h0; break;/*left*/ 
-	// 		case 1: *dz = 2*(ha-h0); break;/*bott*/ 
-	// 		case 2: *dz = -2*(MAX(h2,h3)-ha); break;/*top*/  
+	// 		case 0: *dz = MAX(h2,ha)-h0; break;/*left*/
+	// 		case 1: *dz = 2*(ha-h0); break;/*bott*/
+	// 		case 2: *dz = -2*(MAX(h2,h3)-ha); break;/*top*/
 	// 		case 3: *dz = MAX(h3,ha)-h1; break;/*right*/
 	// 	}
 	// }
@@ -475,16 +479,16 @@ void hmap_update(hmap* hmap, v4f infocus){
 					// v4f p1 = (v4f){i+1-xres/2, hmap_evald(hmap, i+.132-xres/2+focus[0], -1*(j  -xres/2)+focus[2] , &dx1,NULL,&dz1), -1*(j  -yres/2), 1};
 					// v4f p2 = (v4f){i  -xres/2, hmap_evald(hmap, i  -xres/2+focus[0], -1*(j+.132-xres/2)+focus[2] , &dx2,NULL,&dz2), -1*(j+1-yres/2), 1};
 					// v4f p3 = (v4f){i+1-xres/2, hmap_evald(hmap, i+.132-xres/2+focus[0], -1*(j+.132-xres/2)+focus[2] , &dx3,NULL,&dz3), -1*(j+1-yres/2), 1};
-					
+
 					// v4f p4 = (v4f){i-1-xres/2, hmap_evald(hmap, i-.132-xres/2+focus[0], -1*(j  -xres/2)+focus[2] , &dx3,NULL,&dz3), -1*(j  -yres/2), 1};
 					// v4f p5 = (v4f){i  -xres/2, hmap_evald(hmap, i  -xres/2+focus[0], -1*(j-.132-xres/2)+focus[2] , &dx3,NULL,&dz3), -1*(j-1-yres/2), 1};
-					
+
 
 					// v4f pa = (p0+p1+p2+p3) /4.f;
 
 					// v4f n = .25*(v3f_cross(p4-p0, p5-p0) + v3f_cross(p2-p0, p4-p0) + v3f_cross(p1-p0, p2-p0) + v3f_cross(p2-p0, p5-p0)) ;
-					
-					v4f n=v4f_0;// = .25f*((v4f){dx0,dy0,dz0,0}+(v4f){dx1,dy1,dz1,0}+(v4f){dx2,dy2,dz2,0}+(v4f){dx3,dy3,dz3,0});					
+					//sample 8 triangles around the point
+					v4f n=v4f_0;// = .25f*((v4f){dx0,dy0,dz0,0}+(v4f){dx1,dy1,dz1,0}+(v4f){dx2,dy2,dz2,0}+(v4f){dx3,dy3,dz3,0});
 					hmap_evald(hmap, i+e-xres/2+focus[0], -1*(j+d-xres/2)+focus[2] , &dx0,&dy0,&dz0);
 					n += (v4f){dx0,dy0,dz0,0};
 					hmap_evald(hmap, i+d-xres/2+focus[0], -1*(j+e-xres/2)+focus[2] , &dx0,&dy0,&dz0);
@@ -505,7 +509,7 @@ void hmap_update(hmap* hmap, v4f infocus){
 					hmap_evald(hmap, i+d-xres/2+focus[0], -1*(j-e-xres/2)+focus[2] , &dx0,&dy0,&dz0);
 					n += (v4f){dx0,dy0,dz0,0};
 
-					n/=8;
+					n=v3f_normalize(n);
 					// n += .25f*((v4f){dx0,dy0,dz0,0}+(v4f){dx1,dy1,dz1,0}+(v4f){dx2,dy2,dz2,0}+(v4f){dx3,dy3,dz3,0});
 					// v4f n = v3f_normalize(-v3f_cross(p0-pa, p2-pa)); // normals are inverted ??
 
@@ -519,22 +523,22 @@ void hmap_update(hmap* hmap, v4f infocus){
 		for (int i = 0; i < xres; ++i){
 			for (int j = 0; j < yres; ++j){
 				// for (int k = 0; k < 6; ++k){ // for each point in 2 triangles
-				v4f p0 = (v4f){i  -xres/2, hmap_evald(hmap, i  -xres/2+focus[0], -1*(j  -xres/2)+focus[2] , &dx0,NULL,&dz0), -1*(j  -yres/2), 1};
-				v4f p1 = (v4f){i+1-xres/2, hmap_evald(hmap, i+1-xres/2+focus[0], -1*(j  -xres/2)+focus[2] , &dx1,NULL,&dz1), -1*(j  -yres/2), 1};
-				v4f p2 = (v4f){i  -xres/2, hmap_evald(hmap, i  -xres/2+focus[0], -1*(j+1-xres/2)+focus[2] , &dx2,NULL,&dz2), -1*(j+1-yres/2), 1};
-				v4f p3 = (v4f){i+1-xres/2, hmap_evald(hmap, i+1-xres/2+focus[0], -1*(j+1-xres/2)+focus[2] , &dx3,NULL,&dz3), -1*(j+1-yres/2), 1};
+				v4f p0 = (v4f){i  -xres/2, hmap_evald(hmap, i  -xres/2+focus[0], -1*(j  -xres/2)+focus[2] , &dx0,&dy0,&dz0), -1*(j  -yres/2), 1};
+				v4f p1 = (v4f){i+1-xres/2, hmap_evald(hmap, i+1-xres/2+focus[0], -1*(j  -xres/2)+focus[2] , &dx1,&dy1,&dz1), -1*(j  -yres/2), 1};
+				v4f p2 = (v4f){i  -xres/2, hmap_evald(hmap, i  -xres/2+focus[0], -1*(j+1-xres/2)+focus[2] , &dx2,&dy2,&dz2), -1*(j+1-yres/2), 1};
+				v4f p3 = (v4f){i+1-xres/2, hmap_evald(hmap, i+1-xres/2+focus[0], -1*(j+1-xres/2)+focus[2] , &dx3,&dy3,&dz3), -1*(j+1-yres/2), 1};
 
 				v4f pa = (p0+p1+p2+p3) /4.f;
-				
+
 				// v2d noi = (v2d){pa[0]+focus[0],pa[2]+focus[2]}/10.0+G.frame/8000.0;
 				// _spike=noise2(noi);
 				// pa[1]+=_spike;
-	
+
 				// square shading
 				// v4f n2 = (n0+n1) /2;
 				// n0=n2;
 				// n1=n2;
-				
+
 
 				p0 += focus;//focus - focus_fract;
 				p1 += focus;//focus - focus_fract;
@@ -542,13 +546,21 @@ void hmap_update(hmap* hmap, v4f infocus){
 				p3 += focus;//focus - focus_fract;
 				pa += focus;
 				int k = 0;
-#if 0 /*flat on/off*/
+#if 1 /*flat on/off*/
 				// flat shading
-				v4f nl = v3f_normalize(v3f_cross(p0-pa, p2-pa));
-				v4f nr = v3f_normalize(v3f_cross(p3-pa, p1-pa));// warning order
-				v4f nt = v3f_normalize(v3f_cross(p2-pa, p3-pa));
-				v4f nb = v3f_normalize(v3f_cross(p1-pa, p0-pa));// warning order
-				pa[1] -= _spike;
+				// v4f nl = v3f_normalize(v3f_cross(p0-pa, p2-pa));
+				// v4f nr = v3f_normalize(v3f_cross(p3-pa, p1-pa));// warning order
+				// v4f nt = v3f_normalize(v3f_cross(p2-pa, p3-pa));
+				// v4f nb = v3f_normalize(v3f_cross(p1-pa, p0-pa));// warning order
+				hmap_evald(hmap, i  -xres/2+focus[0], -1*(j+.1-xres/2)+focus[2] , &dx0,&dy0,&dz0);
+				v4f nl = {dx0, dy0, dz0, 0};
+				hmap_evald(hmap, i+.7    -xres/2+focus[0], -1*(j+.5  -xres/2)+focus[2] , &dx0,&dy0,&dz0);
+				v4f nr = {dx0, dy0, dz0, 0};
+				hmap_evald(hmap, i+.5  -xres/2+focus[0], -1*(j+.7  -xres/2)+focus[2] , &dx0,&dy0,&dz0);
+				v4f nt = {dx0, dy0, dz0, 0};
+				hmap_evald(hmap, i+.5  -xres/2+focus[0], -1*(j+.1  -xres/2)+focus[2] , &dx0,&dy0,&dz0);
+				v4f nb = {dx0, dy0, dz0, 0};
+				// pa[1] -= _spike;
 				// semi smooth
 				v4f na = (nl+nr+nt+nb)/4.0;
 
@@ -570,12 +582,12 @@ void hmap_update(hmap* hmap, v4f infocus){
 #else
 				// v4f pd = (v4f){i  -xres/2, hmap_evald(hmap, i  -xres/2+focus[0], j  -xres/2+focus[2] , dx0, dz0), j  -yres/2, 1};
 				// v4f pl = (v4f){i+1-xres/2, hmap_evald(hmap, i+1-xres/2+focus[0], j  -xres/2+focus[2] , dx1, dz1), j  -yres/2, 1};
-				
+
 				// v4f n0 = v3f_normalize(v3f_cross(p0-pa, p2-pa));
 				// v4f n1 = v3f_normalize(v3f_cross(p3-pa, p1-pa));
 				// v4f n2 = v3f_normalize(v3f_cross(p2-pa, p3-pa));
 				// v4f n3 = v3f_normalize(v3f_cross(p1-pa, p0-pa));
-				
+
 				// int k = 0;
 				int ti=i, tj=j;
 
@@ -653,7 +665,7 @@ void hmap_draw(hmap* hmap){
 	// dclear_color((v4f){0,0,0,0});
 	// dclear(0);
 	// dcam_update();
-	// m4f depth_proj = 
+	// m4f depth_proj =
 	// m4f_ortho( -hmap->res/2, hmap->res/2, hmap->res/2, -hmap->res/2, hmap->res/2, -hmap->res/2);
 	// m4f_proj(M_PI*25.0, De.cam.res, 25, 200+64);
 	// m4f depth_view = m4f_look_at(G.sunpos, hmap->focus*(v4f){1,.1,1,0}, (v4f){0,1,0,0});
@@ -664,7 +676,7 @@ void hmap_draw(hmap* hmap){
 	// dfbo_bind(prevfbo);
 	// dcam_update();
 
-	
+
 // m4f bias= {
 // 	0.5, 0.0, 0.0, 0.0,
 // 	0.0, 0.5, 0.0, 0.0,
@@ -688,7 +700,7 @@ void hmap_draw(hmap* hmap){
 		dtex_bind(G.enemy_bullets->shadow_map->color, tunit_one);
 	else
 		dtex_bind(NULL, tunit_one);
-	
+
 	dtex_bind(G.bg->color, G.bg_index);
 	dtex_bind(hmap->shadow_map->depth, tunit_two);
 
@@ -755,15 +767,12 @@ char* hmap_vshdsrc = DSHD_QUOTE(
 	attribute vec4 an;
 
 	uniform mat4 mvp;
-	// uniform vec4 focus;
-	// uniform mat4 view;
 	uniform vec4 lpos;
 	uniform vec4 sunc;
 
 	uniform vec4 eye;
 	uniform vec4 ppos;
 
-	// varying vec4 col;
 	varying vec4 vp;
 	varying vec4 vn;
 	varying vec4 vcol;
@@ -771,45 +780,34 @@ char* hmap_vshdsrc = DSHD_QUOTE(
 
 	mat4 M = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 	mat4 N = mat4(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0);
-	// vec4 lpos = vec4(0.0, 5.0, 0.0, 1.0);
-	// vec4 lpos = eye;
 	vec4 lcol = vec4(0.98, 0.98, 1.0, 1.0);
-	// vec4 lcol = vec4(mod(ap.x,1.0), mod(ap.y,1.0), mod(ap.z,1.0) , 1.0);
-	// vec4 lcol = vec4(1.0, 1.0, 1.0 , 1.0);
 	float lpow = 0.987;
 	vec4 spec = vec4(0.0095, 0.95, 0.95, 1.0);
-	// vec4 spec = vec4(0.0, 0.0, 1.0, 1.0);
-	// vec4 diff = vec4(0.95, 0.94, 0.95, 1.0);
 	vec4 diff = vec4(1.0, 1.0, 1.0, 1.0);
 	float shin = 16.0;
 
-	// \nvec4 light(
-	// 	vec4 vpos, vec4 vnor, mat4 N,
-	// 	vec4 lpos, vec4 lcol, float lpow,
-	// 	vec4 diff
-	// ){ \n\t
 	vec4 light(
 		vec4 eye, vec4 vpos, vec4 vnor, mat4 M, mat4 N,
 		vec4 lpos, vec4 lcol, float lpow,
 		vec4 diff, vec4 spec, float shininess
 	){
-	    vec4 inor = normalize(N * vnor);                                 \n\t
-	\t    vec4 lspec = vec4(0.0, 0.0, 0.0, 1.0);                           \n
-	\t    vec4 v = normalize( eye - M * vpos);                             \n
-	    vec4 ldirv = lpos - vpos;                                        \n\t
-	    ldirv.a = 0.0;                                        \n\t
-	    vec4 ldir = normalize(ldirv);                                    \n\t
-	\t    vec4 r = reflect(-ldir, inor);                                   \n
-	    float cosTheta = max(dot(ldir, inor), 0.0);                      \n\t
-	    float dist2 = lpos.w > .0 ? pow(dot(ldirv, ldirv),.2) : 1.0;                         \n\t
-	    vec4 ldiff = diff * lcol * lpow * cosTheta/dist2;              \n\t
-	\t    if(cosTheta > 0.0)                                               \n
-	// \t\t        lspec = ( spec  *  lcol  *  lpow  *                        \n
-	\t\t        lspec = cosTheta * ( spec  *  lcol  *  lpow  *                        \n
-	\t\t\t            pow(max(dot(r,v), 0.0),  shininess ))/dist2;  \n
-	\t    return ldiff + lspec ;                                            \n
-	    // return ldiff;                                            \n
-	}\n
+	    vec4 inor = normalize(N * vnor);
+	     vec4 lspec = vec4(0.0, 0.0, 0.0, 1.0);
+	     vec4 v = normalize( eye - M * vpos);
+	    vec4 ldirv = lpos - vpos;
+	    ldirv.a = 0.0;
+	    vec4 ldir = normalize(ldirv);
+	     vec4 r = reflect(-ldir, inor);
+	    float cosTheta = max(dot(ldir, inor), 0.0);
+	    float dist2 = lpos.w > .0 ? pow(dot(ldirv, ldirv),.2) : 1.0;
+	    vec4 ldiff = diff * lcol * lpow * cosTheta/dist2;
+	     if(cosTheta > 0.0)
+	//           lspec = ( spec  *  lcol  *  lpow  *
+	          lspec = cosTheta * ( spec  *  lcol  *  lpow  *
+	               pow(max(dot(r,v), 0.0),  shininess ))/dist2;
+	     return ldiff + lspec ;
+
+	}
 
 	void main(void){
 		// vec4 lpos = ppos;
@@ -848,7 +846,7 @@ vec4 pos = ap;
 			//  +
 
 
-		vcol += 
+		vcol +=
 					 // light(eye, vp, vn, M,N, lpos+vec4(0.0,0.75,0.0,1.0),   vec4(0.82,0.82,0.98,1.0), lpow*0.997, diff, vec4(1.0,0.0,0.0,0.0),shin);
 					 light(eye, vp, vn, M,N, lpos,   sunc, lpow, diff, sunc,shin);
 		 // +      light(eye, vp, vn, M,N, vec4(1.0,1.0,1.0,0.0)*lpos+vec4(0.0,100.5,0.0,0.0), lcol*vec4(0.82,0.87,0.68,0.0), lpow*1.0, diff, spec*2.0,shin)
@@ -920,22 +918,22 @@ char* hmap_fshdsrc = DSHD_QUOTE(
 		vec4 lpos, vec4 lcol, float lpow,
 		vec4 diff, vec4 spec, float shininess
 	){
-	    vec4 inor = normalize(N * vnor);                                 \n\t
-	\t    vec4 lspec = vec4(0.0, 0.0, 0.0, 1.0);                           \n
-	\t    vec4 v = normalize( eye - M * vpos);                             \n
-	    vec4 ldirv = lpos - vpos;                                        \n\t
-	    vec4 ldir = normalize(ldirv);                                    \n\t
-	    vec4 r = reflect(-ldir, inor);                                   \n\t
-	    float cosTheta = max(dot(ldir, inor), 0.0);                      \n\t
-	    float dist2 = lpos.w > 0.0 ? pow(dot(ldirv, ldirv), .2) : 1.0;                         \n\t
-	    vec4 ldiff = diff * lcol * lpow * cosTheta/dist2;              \n\t
-	\t    if(cosTheta > 0.0)                                               \n
-	// \t\t        lspec = ( spec  *  lcol  *  lpow  *                        \n
-	\t\t        lspec = /*cosTheta **/ ( spec  *  lcol  *  lpow  *                        \n
-	\t\t\t            pow(max(dot(r,v), 0.0),  shininess ))/dist2;  \n
-	\t    return ldiff + lspec ;                                            \n
-	    // return ldiff;                                            \n
-	}\n
+	    vec4 inor = normalize(N * vnor);
+	     vec4 lspec = vec4(0.0, 0.0, 0.0, 1.0);
+	     vec4 v = normalize( eye - M * vpos);
+	    vec4 ldirv = lpos - vpos;
+	    vec4 ldir = normalize(ldirv);
+	    vec4 r = reflect(-ldir, inor);
+	    float cosTheta = max(dot(ldir, inor), 0.0);
+	    float dist2 = lpos.w > 0.0 ? pow(dot(ldirv, ldirv), .2) : 1.0;
+	    vec4 ldiff = diff * lcol * lpow * cosTheta/dist2;
+	     if(cosTheta > 0.0)
+	//           lspec = ( spec  *  lcol  *  lpow  *
+	          lspec = cosTheta * ( spec  *  lcol  *  lpow  *
+	               pow(max(dot(r,v), 0.0),  shininess ))/dist2;
+	     return ldiff + lspec ;
+	    // return ldiff;
+	}
 
 
 
@@ -945,7 +943,7 @@ char* hmap_fshdsrc = DSHD_QUOTE(
 		vec4 col = vcol;
 //fragment light
 		// if(length(vp.xyz-ppos.xyz) < 1.2)
-		col += 
+		col +=
 		light(eye, vp, vn, M,N, ppos+vec4(0.0,0.75,0.0,1.0),   vec4(0.42,0.2,0.98,1.0), lpow*0.997, diff, vec4(0.42,0.2,0.98,0.0),shin)
 		 // +      light(eye, vp, vn, M,N, vec4(1.0,1.0,1.0,0.0)*lpos+vec4(0.0,100.5,0.0,0.0), lcol*vec4(0.82,0.87,0.68,0.0), lpow*1.0, diff, spec*2.0,shin)
 		 // +      light(eye, vp, vn, M,N, vec4(1.0,1.0,1.0,0.0)*lpos+vec4(0.0,0.5,1.0,1.0), lcol*vec4(0.82,0.87,0.68,0.0), lpow*1.0, vec4(.1,1.0,0.1,0.0), vec4(.0,1.0,0.0,0.0)*2.0,shin)
@@ -1060,7 +1058,7 @@ char* hmap_fshdsrc = DSHD_QUOTE(
 
 		// if ( texture2D( depth_map, (shadow_coord.xy/shadow_coord.w) ).r  <  (shadow_coord.z-bias)/shadow_coord.w ){
 		// if ( texture2D( depth_map, shadow_coord.xy ).r  <  shadow_coord.z-bias){
-
+		if(vp.y<-0.01 ) tcol.b=1.0;
 
 		gl_FragColor = tcol ;
 		// gl_FragColor = vec4(texture2DProj( depth_map, shadow_coord.xyz ).z) ;

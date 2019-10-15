@@ -56,14 +56,15 @@ typedef unsigned short ushort;
 
 	#include <SDL2/SDL.h>
 	#include <SDL2/SDL_mixer.h>
-	// #include <SDL2/SDL_net.h>
-	// #include <SDL2/SDL_ttf.h>
-	// #include <SDL2/SDL_image.h>
+	#include <SDL2/SDL_net.h>
+	#include <SDL2/SDL_ttf.h>
+	#include <SDL2/SDL_image.h>
 #endif
 
 #ifndef __EMSCRIPTEN__
 #define EMSCRIPTEN_KEEPALIVE
 #else
+// #include <pthread.h>
 #include <emscripten.h>
 #include <emscripten/html5.h>
 #endif

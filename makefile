@@ -3,8 +3,8 @@ EXEC = de
 MAIN = ./src/main.cpp
 GAME_DIR = src/game
 
-CCFLAG = -std=gnu99 -g -O3 -Wall -Wextra -Wno-psabi -ffast-math -funroll-loops -D _DEFAULT_SOURCE
-CPPCFLAG = -std=gnu++11 -Wall -Wextra -g -O3
+CCFLAG = -std=gnu99 -g -O3 -Wall -Wextra -Wno-psabi -ffast-math -funroll-loops -D _DEFAULT_SOURCE -D MG_DISABLE_MQTT -D MG_DISABLE_COAP
+CPPCFLAG = -std=gnu++11 -Wall -Wextra -g -O3 -D MG_DISABLE_MQTT -D MG_DISABLE_COAP
 
 LFLAG = $(CPPCFLAG)
 LCC=$(CPPC)
@@ -18,7 +18,7 @@ SDL2_CONFIG = $(CROSS)sdl2-config
 LIBS = -lm \
        $(WIN_LIBS) \
        $(shell $(PKG_CONFIG) --cflags --libs \
-        gl SDL2_mixer ) \
+        gl SDL2_mixer SDL2_net SDL2_image SDL2_ttf libpng)\
        $(shell $(SDL2_CONFIG) --cflags --libs)\
     # -DGLEW_STATIC
     # glew gl SDL2_mixer SDL2_net SDL2_image SDL2_ttf libpng
@@ -35,17 +35,22 @@ ENGINE_SRC = \
   $(wildcard ./src/de/*.c) $(wildcard ./src/de/*/*.c)\
   $(wildcard ./src/de/*/*/*.c) $(wildcard ./src/de/*/*/*/*.c)
 
+3RDP_SRC = \
+  $(wildcard ./src/3rdparty/*.c) $(wildcard ./src/3rdparty/*/*.c)\
+  $(wildcard ./src/3rdparty/*/*/*.c) $(wildcard ./src/3rdparty/*/*/*/*.c)
+
 ENGINE_OBJ = $(subst .c,.$(CROSSOBJ)o,$(ENGINE_SRC))
 GAME_OBJ = $(subst .c,.$(CROSSOBJ)o,$(GAME_SRC))
+3RDP_OBJ = $(subst .c,.$(CROSSOBJ)o,$(3RDP_SRC))
 
 
 
-all: @notify $(ENGINE_SRC) $(GAME_SRC) $(MAIN) $(EXEC)
+all: @notify $(ENGINE_SRC) $(GAME_SRC) $(3RDP_SRC) $(MAIN) $(EXEC)
 
 
-$(EXEC): $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ)
+$(EXEC): $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ) $(3RDP_OBJ)
 	$(call color_green,"$(LCC) $(EXEC)")
-	$(LCC) $(LFLAG) $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ) $(LIBS)  -o $(EXEC)
+	$(LCC) $(LFLAG) $(MAIN) $(ENGINE_OBJ) $(GAME_OBJ) $(3RDP_OBJ) $(LIBS)  -o $(EXEC)
 
 %.$(CROSSOBJ)o: %.c %.h
 	$(call color_green,"$(CC) $@")
@@ -93,11 +98,11 @@ rund:
 #______________________________________________________________________________
 # WINDOWS - mxe
 WIN_EXEC = $(EXEC).exe
-WIN_FLAG = CROSSOBJ=win. CROSS=i686-w64-mingw32.static- EXEC=$(WIN_EXEC) WIN_LIBS="-liphlpapi -DGLEW_STATIC -lGLEW"
+WIN_FLAG = CROSSOBJ=win. CROSS=i686-w64-mingw32.static- EXEC=$(WIN_EXEC) WIN_LIBS="-liphlpapi -lpthread -lwsock32 -DGLEW_STATIC -lGLEW"
 # WIN_FLAG = CROSSOBJ=win CROSS=x86_64-w64-mingw32.static- EXEC=$(WIN_EXEC)
 # -liphlpapi is requiered for sdl_net to link properly
 # required libs: sdl2_* glew dlfcn-win32 png 
-
+#  -lpthread -lwsock32 requiered for mongoose.c
 win:
 	make $(WIN_FLAG) -j4
 
@@ -121,27 +126,34 @@ win-clean:
 web:
 	$(W)
 
-W=emcc -s ASSERTIONS=1  -s WASM=1 \
+W=emcc -s ASSERTIONS=0  -s WASM=1 \
+-g --profiling\
 	-s TOTAL_MEMORY=256MB\
 	-s TOTAL_STACK=64MB\
 	-s ERROR_ON_UNDEFINED_SYMBOLS=1 \
 	-s AGGRESSIVE_VARIABLE_ELIMINATION=1 \
 	-s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 \
+	-s SINGLE_FILE=1 \
+	--source-map-base de.wasm.map \
 	-s USE_ZLIB=1 \
 	-s USE_SDL=2 \
-	-s SINGLE_FILE=1 \
 	-s USE_SDL_MIXER=2 \
+	-s USE_SDL_TTF=2 \
+	-s USE_SDL_IMAGE=2 \
 	--shell-file www/base.html \
 	-s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]'\
-	-o www/$(EXEC).html -O3 $(MAIN) $(ENGINE_SRC) $(GAME_SRC) \
+	-o www/$(EXEC).html -O3 $(CPPFLAG) $(MAIN) $(ENGINE_SRC) $(GAME_SRC) $(3RDP_SRC) \
 
+
+#	-s USE_PTHREADS=1 
+	# -s USE_SDL_NET=2 
 # -g
-	# -s AGGRESSIVE_VARIABLE_ELIMINATION=1 
-	# -s SINGLE_FILE=1
-	# -s SDL2_IMAGE_FORMATS='["png"]' 
 	# -s USE_SDL_IMAGE=2 
 	# -s USE_SDL_NET=2 
 	# -s USE_SDL_TTF=2 
+	# -s AGGRESSIVE_VARIABLE_ELIMINATION=1 
+	# -s SINGLE_FILE=1
+	# -s SDL2_IMAGE_FORMATS='["png"]' 
 	# -s LINKABLE=1
 	# -s EXPORT_ALL=1
 # --separate-asm \
@@ -166,7 +178,7 @@ W=emcc -s ASSERTIONS=1  -s WASM=1 \
 #______________________________________________________________________________
 # android - ndk
 ANDROID_MK_PATH = ./de_android/jni/src/Android.mk
-ANDROID_MK_SOURCES = $(addprefix ../../../,$(GAME_SRC) $(MAIN) $(ENGINE_SRC))
+ANDROID_MK_SOURCES = $(addprefix ../../../,$(GAME_SRC) $(MAIN) $(ENGINE_SRC) $(3RDP_SRC))
 
 android:
 	$(call color_green,"ln -f -s -r ./assets ./de_android/")
@@ -200,7 +212,6 @@ SDL_TTF_PATH   := ../SDL2_ttf                   \n\
 LOCAL_C_INCLUDES := \
   $$(LOCAL_PATH)/$$(SDL_PATH)/include             \
   $$(LOCAL_PATH)/$$(SDL_MIXER_PATH)               \
-  $$(LOCAL_PATH)/$$(SDL_NET_PATH)                 \
   $$(LOCAL_PATH)/$$(SDL_IMAGE_PATH)               \
   $$(LOCAL_PATH)/$$(SDL_TTF_PATH)                 \
 \n'
@@ -217,6 +228,7 @@ include $$(BUILD_SHARED_LIBRARY)\n'
 endef
 
 
+  # $$(LOCAL_PATH)/$$(SDL_NET_PATH)                 \
 
 
 

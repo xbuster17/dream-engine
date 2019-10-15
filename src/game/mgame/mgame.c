@@ -1,7 +1,12 @@
 // #include "../../de/de.h"
 #include "mgame.h"
 #include "hfunc0.h"
+// #include "3rdparty/mongoose.h"
+#include "../../3rdparty/mongoose.h"
+void wschat(void );
 
+  struct mg_mgr mgr;
+  struct mg_connection *nc;
 v4c sweetie16[16]={ // by GrafxKid 
 	{0x1a, 0x1c, 0x2c, 0xFF},
 	{0x5d, 0x27, 0x5d, 0xFF},
@@ -50,6 +55,8 @@ void mgame_quit(void){
 	free(sndchunk);
 	pts_free(pts_test);
 	pts_quit();
+  mg_mgr_free(&mgr);
+
 }
 
 
@@ -125,6 +132,8 @@ void remonk(void){
 
 
 void mgame_init(void){
+ wschat();
+
 	dvsync(1);
 	G.timePrev=0;
 	G.time=SDL_GetPerformanceCounter();
@@ -235,7 +244,7 @@ dshd_unif(skyshd, "proj", &De.cam.proj);
 	G.player.rad = .075/2;
 	// G.player.rad = .25/4.0;
 	// G.player.height = .025f;
-	G.player.height = .15f;
+	G.player.height = .025f;
 
 	// G.hmap0 = hmap_new(hmap_res,hmap_res, hfunc, 0);
 	G.hmap0 = hmap_new(hmap_res,hmap_res, hfunc, HMAP_DYNAMIC | HMAP_FIXED);
@@ -332,6 +341,8 @@ bool dmktsel = 0;
 // G.enm[0].vel = v4f_0;
 void mgame_loop(void){
 	DE_GAME_LOOP(){
+mg_mgr_poll(&mgr, 0);
+
 		G.timePrev=G.time;
 		G.time=SDL_GetPerformanceCounter();
 		G.dt = (float)((G.time - G.timePrev)*1000.0 / (double)SDL_GetPerformanceFrequency() )/1000.f;
@@ -353,7 +364,7 @@ void mgame_loop(void){
 
 		// v2i_print(De.size/2);
 		// dfbo_resize(game_fbo, De.size[0]/2, De.size[1]/2);
-	G.main_fbo_scale=2.0;
+	G.main_fbo_scale=1.0;
 	if(De.size[0]/G.main_fbo_scale!=game_fbo->x || De.size[1]/G.main_fbo_scale!=game_fbo->y){
 		dfbo_free(game_fbo);
 		game_fbo= dfbo_new(De.size[0]/G.main_fbo_scale, De.size[1]/G.main_fbo_scale);
@@ -361,7 +372,7 @@ void mgame_loop(void){
 	}
 	// if(G.main_fbo_scale > MainFboMinScale) G.main_fbo_scale /= G.frame%10 ? 1: 2;// test
 
-//// blit background
+
 		dfbo_bind(game_fbo);
 		// dcam_update();
 		dclear(0);
@@ -397,7 +408,7 @@ if (frame%160 == 0) {
 	// G.enm[0].vel[0] = dmktsel? (((1.f*rand())/INT_MAX)-.5f)*2 : 0;
 	// G.enm[0].vel[2] = dmktsel? (((1.f*rand())/INT_MAX)-.5f)*2 : 0;
 
-#if 0
+#if 1
 	if(dmktsel) {
 		int il = 16; // density
 		int jl = il;
@@ -461,7 +472,7 @@ if(true){
 		tor->pos = G.enm[0].pos;
 		tor->vel = spinning_dmk_dir *0.7f;//* 1.5;
 		tor->acc[1] = Grav;
-		tor->rad = 0.04+(dmktsel%2)*0.08;
+		tor->rad = 0.03+(dmktsel%2)*0.008;
 		tor->col0[2] = (dmktsel%2)*155;
 		spinning_dmk_dir = v4f_mmul(spinning_dmk_dir, m4f_rotation_y(PI/6.0));
 	}
@@ -570,9 +581,9 @@ mcyl_update(monk);
 	// ddepth(0,0);
 	// dblend(0);
 
-dcullf(0);
+// dcullf(0);
 dblend(1);
-mcyl_draw(plym);
+// mcyl_draw(plym);
 
 	bullets_draw(G.enemy_bullets);
 	// dfbo_bind(game_fbo);
@@ -879,7 +890,7 @@ mcyl_regen(plym, plymf);
 	if(lthumb){
 		if(lthumb->down){
 			pdir[0] = lthumb->rel[0];
-			pdir[2] = -lthumb->rel[1];
+			pdir[2] = lthumb->rel[1];
 
 			pdir[0] *= 10;
 			pdir[2] *= 10;
@@ -1068,8 +1079,11 @@ mcyl_regen(plym, plymf);
 	// 	camtrans[0]=0;
 	// 	camtrans[2]=.1;
 	// } else 
-	zoom = MAX(LERP(zoom, ((-De.mouse.scroll_total[1]+3)*.05), .5),.0001f) ;
+	float zoom_target = (-De.mouse.scroll_total[1]+3)*.05;
+	
+	zoom = MAX(LERP(zoom, zoom_target, .5),.0001f) ;
 	// De.mouse.scroll[1]=0;
+
 	camtrans *= zoom;
 
 
@@ -1082,12 +1096,14 @@ mcyl_regen(plym, plymf);
 	// De.cam.tar[1]+=10.0;
 	// De.cam.pos = G.sunpos;
 
-	// cam collides with hmap fixme todo
-	// De.cam.pos[1] = MAX(De.cam.pos[1], hmap_eval(G.hmap0, De.cam.pos[0],De.cam.pos[2])+.05);
 	if (De.cam.pos[1] < hmap_eval(G.hmap0, De.cam.pos[0], De.cam.pos[2]))
 		G.cam_in_hmap=true;
 	else 
 		G.cam_in_hmap=false;
+
+	// cam collides with hmap fixme todo
+	// if(G.cam_in_hmap)
+	// 	De.cam.pos[1] = MAX(De.cam.pos[1], hmap_eval(G.hmap0, De.cam.pos[0],De.cam.pos[2])+.15);
 	// De.cam.pos = G.player.pos + v4f_mtmul(camtrans, m4f_rotation(-G.player.rot);
 	// De.cam.rot = G.player.rot * (v4f){0,1,0,0};
 
@@ -1117,20 +1133,22 @@ Lskytar= De.cam.tar;
 	float pe_len2 = v4f_len2(G.player.pos - G.enm[0].pos);
 bool pshoot = false;
 	if (dgetk(DK_VOL_UP)) pshoot=true;
-	if(pe_len2 < 10 || pshoot){
+	if(pe_len2 < 20 || pshoot){
 		bullet* b = bullets_add(G.player_bullets, &Pbul1);
 		b->pos = G.player.pos;
 		// b->pos[1] += .2;
 		// b->rad = 0.00;
-		b->vel = (v4f){0,0,-10,0} /*+ (v4f_rand() -.5)*0.5*/;
+		b->vel = (v4f){0,0,-7,0} /*+ (v4f_rand() -.5)*0.5*/;
 		// b->vel = v4f_mmul(b->vel, m4f_rotation_y(G.player.rot[1]));
-		b->vel = v4f_mtmul(b->vel, m4f_rotation((v4f){G.player.rot[0]-.26, G.player.rot[1], 0,0}));
+		// b->vel = v4f_mtmul(b->vel, m4f_rotation((v4f){G.player.rot[0]-.26, G.player.rot[1], 0,0}));
+		b->vel = v4f_mtmul(b->vel, m4f_rotation((v4f){0, G.player.rot[1], 0,0}));
 	}
 
-	if(pe_len2 < 5 /*&& Pgrounded>60*/ || pshoot){
-		v4f vel = (v4f){0,0,-10,0} /*+ (v4f_rand() -.5)*0.5*/;
+	if(pe_len2 < 10 /*&& Pgrounded>60*/ || pshoot){
+		v4f vel = (v4f){0,0,-7,0} /*+ (v4f_rand() -.5)*0.5*/;
 		// vel = v4f_mmul(vel, m4f_rotation_y(G.player.rot[1]));
-		vel = v4f_mtmul(vel, m4f_rotation((v4f){G.player.rot[0]-.18, G.player.rot[1], 0,0}));
+		// vel = v4f_mtmul(vel, m4f_rotation((v4f){G.player.rot[0]-.18, G.player.rot[1], 0,0}));
+		vel = v4f_mtmul(vel, m4f_rotation((v4f){0, G.player.rot[1], 0,0}));
 
 		v4f tp = {.1,0,0,0};
 		tp = v4f_mtmul(tp, m4f_rotation_y(G.player.rot[1]));
@@ -1168,10 +1186,13 @@ skip_shoot:;
 	pt = bullets_add(G.enemy_bullets, &playeraura);
 	pt->pos=G.player.pos;
 	pt->rad = G.player.rad;
+	// pt->col0 = v4c_rand()*(char)(sin(G.ftime/60.0)*255);
+	// pt->col0 = (v4c){5,5,(char)((pow(sin(G.ftime),2)*255)), 255};
+	pt->col0 = (v4c){5,5, 255, 255};
 	// pt->pos = G.player.pos;
 	pt->vel = v4f_0;
 	pt->acc = v4f_0;
-	pt->lifetime=10;
+	pt->lifetime=25;
 
 
 
@@ -1193,6 +1214,9 @@ mcyl_update(plym);
 	G.sunpos[0]=sin(G.ftime*.03)*100.0;
 	G.sunpos[2]=cos(G.ftime*.03)*100.0;
 	
+
+
+
 }
 
 
@@ -1509,3 +1533,150 @@ EMSCRIPTEN_KEEPALIVE void sunc( float x, float y, float z ){
 EMSCRIPTEN_KEEPALIVE float eval( float x, float y ){
 	return hmap_eval(G.hmap0, x, y);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+typedef int32_t mfixed;
+
+
+mfixed mfixed_(float x);
+mfixed mfixed_(float x){
+	mfixed ret;
+	ret = (int32_t) (x * 255.f);
+	// ret = big_endian ? ret<<8 : ret >> 8;
+
+	return ret;
+}
+
+
+
+
+
+
+
+//network
+
+
+static int s_done = 0;
+static int s_is_connected = 0;
+int said_hi=0;
+
+
+
+
+static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
+  (void) nc;
+
+  switch (ev) {
+    case MG_EV_CONNECT: {
+      int status = *((int *) ev_data);
+      if (status != 0) {
+        printf("-- Connection error: %d\n", status);
+      }
+      break;
+    }
+    case MG_EV_WEBSOCKET_HANDSHAKE_DONE: {
+      struct http_message *hm = (struct http_message *) ev_data;
+      if (hm->resp_code == 101) {
+        printf("-- Connected\n");
+        s_is_connected = 1;
+      } else {
+        printf("-- Connection failed! HTTP code %d\n", hm->resp_code);
+        /* Connection will be closed after this. */
+      }
+      break;
+    }
+    case MG_EV_POLL: {
+      // char msg[500];
+    	// if (said_hi) break;
+    	// said_hi=1;
+      // char* msg="hallo";
+      // int n = 5;
+      // mg_send_websocket_frame(nc, WEBSOCKET_OP_TEXT, msg, n);
+   // mfixed netpos[3] = {mfixed_(G.player.pos[0]), mfixed_(G.player.pos[1]), mfixed_(G.player.pos[2])};
+   // int32_t netpos[3] = {G.player.pos[0]*255, G.player.pos[1]*255, G.player.pos[2]*255};
+      // mg_send_websocket_frame(nc, WEBSOCKET_OP_BINARY, netpos, sizeof(int32_t)*3);
+    	int32_t bit = G.player.pos[1]*255.f;
+      mg_send_websocket_frame(nc, WEBSOCKET_OP_BINARY, &bit, sizeof(int32_t));
+    
+      break;
+    }
+
+
+    case MG_EV_WEBSOCKET_FRAME: { // 
+      struct websocket_message *wm = (struct websocket_message *) ev_data;
+      printf("%.*s\n", (int) wm->size, wm->data);
+      break;
+    }
+    case MG_EV_CLOSE: {
+      if (s_is_connected) printf("-- Disconnected\n");
+      s_done = 1;
+      break;
+    }
+  }
+}
+
+void wschat(void ){
+  // const char *chat_server_url = "ws://127.0.0.1:7777";
+  // const char *chat_server_url = "ws://127.0.0.1:7777";
+  // const char *chat_server_url = "ws://192.168.0.220:8000";
+  // const char *chat_server_url = "ws://xb17.duckdns.org:7777";
+  // const char *chat_server_url = "ws://xb17.duckdns.org:1717";
+  const char *chat_server_url = "ws://192.168.0.220:1717";
+  // const char *chat_server_url = "ws://181.167.117.180:1717";
+  // const char *chat_server_url = "ws://192.168.0.25:8000";
+
+  mg_mgr_init(&mgr, NULL);
+
+  // nc = mg_connect_ws(&mgr, ev_handler, chat_server_url_local, "ws_chat", NULL);
+  // if (nc == NULL) {
+    // fprintf(stderr, "Invalid address, trying non local server\n");
+    nc = mg_connect_ws(&mgr, ev_handler, chat_server_url, "ws_chat", NULL);
+  // }
+  if (nc == NULL) {
+    fprintf(stderr, "Invalid address\n");
+    return ;
+  }
+int timePrev=0, time=SDL_GetPerformanceCounter();
+float dt=0, ftime=0;
+  // while (!s_done) { 
+//   for (int i=0; i<300; i++) { 
+//   	dvsync(1);
+//   		timePrev=time;
+// 		time=SDL_GetPerformanceCounter();
+// 		dt = (float)((time - timePrev)*1000.0 / (double)SDL_GetPerformanceFrequency() )/1000.f;
+// 		ftime+=dt;
+// // DE_LOG("dt=%f",dt);
+//   	dclear_color(v4f_rand());
+//   	dclear(0);
+//   	ddisplay();
+//     mg_mgr_poll(&mgr, 16);
+//   }
+
+// mg_mgr_poll(&mgr, 16);
+  // mg_mgr_free(&mgr);
+
+  return ;
+
+}
+
+
+
+
+
+
+
+
+

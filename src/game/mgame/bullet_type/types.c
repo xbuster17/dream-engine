@@ -45,9 +45,9 @@ def_bullet(glider){
 	float h = hmap_evald(G.hmap0, in->pos[0], in->pos[2], &nx,&ny,&nz);
 
 	// if(h + in->rad + G.player.height/2 > in->pos[1]){
-	if(h + G.player.height + in->rad > in->pos[1]){
+	if(h + MAX(G.player.height , in->rad) > in->pos[1]){
 		// in->pos[1] = h + in->rad + G.player.height/2;
-		in->pos[1] = h + G.player.height + in->rad;
+		in->pos[1] = h + MAX(G.player.height , in->rad);
 		in->vel[1] = 0;
 
 		     if(nx > .15) {if(nx > .85 && in->vel[0]<0) {in->vel[0]*=-1;} in->vel[0] += nx * G.dt;} //else in->acc[0]=0;
@@ -139,7 +139,11 @@ def_bullet(playeraura){
 		*in = playeraura;
 		in->buf = buf;
 	}
-	in->rad*=.9;
+	// in->rad=LERP(in->rad, .001, in->frame/in->lifetime);
+	in->rad=LERP(G.player.rad, .005, in->frame/in->lifetime);
+	in->col0 -= (char)(200/in->lifetime);
+	in->col1 -= (char)(200/in->lifetime);
+	in->pos+= (De.cam.tar - De.cam.pos)*.00015f;
 	// in->rad*=2-in->frame;
 	// in->rad = MAX(in->rad-0.01, 0);
 }

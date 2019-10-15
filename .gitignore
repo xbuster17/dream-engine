@@ -2,6 +2,8 @@
 /de
 *.exe
 /www/de.html
+/www/de.wasm.map
+
 /assets/
 
 /de_android/

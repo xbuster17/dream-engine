@@ -5,7 +5,9 @@
 int dinput_watcher(void* udata, SDL_Event* event);
 
 void dinput_init(void){
-//	SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
+	#ifdef ANDROID
+	SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
+	#endif
 	De.mouse.grab=0;
 
 	De.fingers_down = 0;

@@ -315,7 +315,7 @@ void* dshd_unif(dshd* shd, char* name, void* store_ptr){ if(!shd) return NULL;
 
 	int index = glGetUniformLocation(shd->program, name);
 	if (index==-1) {
-		DE_LOGE("uniform name not found: %s", name);
+		DE_LOG("uniform name not found: %s", name);
 		return NULL;
 	}
 

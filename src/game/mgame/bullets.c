@@ -11,10 +11,10 @@ char* bullet_fshdsrc;
 dshd* bullet_shd;
 dibo* bullet_ibo;
 
-v4f* _bullet_ppos;
-v4f* _bullet_pctr;
-v4c* _bullet_pcol0;
-v4c* _bullet_pcol1;
+v4f* _bullet_ppos; // tmp shared buffers
+// v4f* _bullet_pctr; // tmp shared buffers
+// v4c* _bullet_pcol0; // tmp shared buffers
+// v4c* _bullet_pcol1; // tmp shared buffers
 SDL_mutex* _bullet_buffer_mutex;
 
 v4c* bullet_tex_pixels;
@@ -42,9 +42,9 @@ float Hmap_shadow_len;
 void bullets_init(uint count){
 	//these are initialization buffers to avoid mallocs on _new()
 	_bullet_ppos = malloc(sizeof(v4f)*count*4);
-	_bullet_pctr = malloc(sizeof(v4f)*count*4);
-	_bullet_pcol0 = malloc(sizeof(v4c)*count*4);
-	_bullet_pcol1 = malloc(sizeof(v4c)*count*4);
+	// _bullet_pctr = malloc(sizeof(v4f)*count*4);
+	// _bullet_pcol0 = malloc(sizeof(v4c)*count*4);
+	// _bullet_pcol1 = malloc(sizeof(v4c)*count*4);
 
 //init bullet vertices
 	// v4c col0 = {255,255,255,255};
@@ -159,9 +159,9 @@ void bullets_init(uint count){
 
 void bullets_quit(void){
 	free(_bullet_ppos);
-	free(_bullet_pctr);
-	free(_bullet_pcol0);
-	free(_bullet_pcol1);
+	// free(_bullet_pctr);
+	// free(_bullet_pcol0);
+	// free(_bullet_pcol1);
 	dtex_free(bullet_tex);
 	dshd_free(bullet_shd);
 	dibo_free(bullet_ibo);
@@ -299,7 +299,6 @@ void bullets_update_logic(bullets* bs, float dt){
 		j++;
 	}
 
-	// bullet_upload
 	dvao_setr(bs->vao, 1, bs->pctr, 0, bs->len * 4);
 	dvao_setr(bs->vao, 2, bs->pcol0, 0, bs->len * 4);
 	dvao_setr(bs->vao, 3, bs->pcol1, 0, bs->len * 4);
