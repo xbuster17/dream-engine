@@ -1609,7 +1609,8 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
    // int32_t netpos[3] = {G.player.pos[0]*255, G.player.pos[1]*255, G.player.pos[2]*255};
       // mg_send_websocket_frame(nc, WEBSOCKET_OP_BINARY, netpos, sizeof(int32_t)*3);
     	int32_t bit = G.player.pos[1]*255.f;
-      mg_send_websocket_frame(nc, WEBSOCKET_OP_BINARY, &bit, sizeof(int32_t));
+      // mg_send_websocket_frame(nc, WEBSOCKET_OP_BINARY, &bit, sizeof(int32_t));
+      mg_send(nc, &bit, sizeof(int32_t));
     
       break;
     }
@@ -1633,8 +1634,11 @@ void wschat(void ){
   // const char *chat_server_url = "ws://127.0.0.1:7777";
   // const char *chat_server_url = "ws://192.168.0.220:8000";
   // const char *chat_server_url = "ws://xb17.duckdns.org:7777";
+  // const char *chat_server_url = "ws://192.168.0.220:1717";
   // const char *chat_server_url = "ws://xb17.duckdns.org:1717";
-  const char *chat_server_url = "ws://192.168.0.220:1717";
+  // const char *chat_server_url = "tcp://xb17.duckdns.org:1717";
+  // const char *chat_server_url = "tcp:127.0.0.1:1717";
+  const char *chat_server_url = "tcp:192.168.0.220:1717";
   // const char *chat_server_url = "ws://181.167.117.180:1717";
   // const char *chat_server_url = "ws://192.168.0.25:8000";
 
@@ -1643,7 +1647,8 @@ void wschat(void ){
   // nc = mg_connect_ws(&mgr, ev_handler, chat_server_url_local, "ws_chat", NULL);
   // if (nc == NULL) {
     // fprintf(stderr, "Invalid address, trying non local server\n");
-    nc = mg_connect_ws(&mgr, ev_handler, chat_server_url, "ws_chat", NULL);
+    // nc = mg_connect_ws(&mgr, ev_handler, chat_server_url, "ws_chat", NULL);
+    nc = mg_connect(&mgr, chat_server_url, ev_handler);
   // }
   if (nc == NULL) {
     fprintf(stderr, "Invalid address\n");
