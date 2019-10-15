@@ -143,6 +143,7 @@ W=emcc -s ASSERTIONS=0  -s WASM=1 \
 	--shell-file www/base.html \
 	-s EXTRA_EXPORTED_RUNTIME_METHODS='["ccall", "cwrap"]'\
 	-o www/$(EXEC).html -O3 $(CPPFLAG) $(MAIN) $(ENGINE_SRC) $(GAME_SRC) $(3RDP_SRC) \
+	--pre-js settings.js \
 
 
 #	-s USE_PTHREADS=1 
