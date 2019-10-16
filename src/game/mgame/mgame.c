@@ -1547,39 +1547,18 @@ EMSCRIPTEN_KEEPALIVE float eval( float x, float y ){
 
 
 
-
-typedef int32_t mfixed;
-
-
-mfixed mfixed_(float x);
-mfixed mfixed_(float x){
-	mfixed ret;
-	ret = (int32_t) (x * 255.f);
-	// ret = big_endian ? ret<<8 : ret >> 8;
-
-	return ret;
-}
-
-
-
-
-
-
-
-//network
-
-
 static int s_done = 0;
 static int s_is_connected = 0;
-int said_hi=0;
 
 
 
 
 static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
   (void) nc;
+struct mbuf *io;// = &nc->recv_mbuf; // emcc only
 
   switch (ev) {
+  	
     case MG_EV_CONNECT: {
       int status = *((int *) ev_data);
       if (status != 0) {
@@ -1587,6 +1566,7 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
       }
       break;
     }
+
     case MG_EV_WEBSOCKET_HANDSHAKE_DONE: {
       struct http_message *hm = (struct http_message *) ev_data;
       if (hm->resp_code == 101) {
@@ -1598,29 +1578,43 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
       }
       break;
     }
+
     case MG_EV_POLL: {
       // char msg[500];
-    	// if (said_hi) break;
-    	// said_hi=1;
-      // char* msg="hallo";
-      // int n = 5;
       // mg_send_websocket_frame(nc, WEBSOCKET_OP_TEXT, msg, n);
-   // mfixed netpos[3] = {mfixed_(G.player.pos[0]), mfixed_(G.player.pos[1]), mfixed_(G.player.pos[2])};
-   // int32_t netpos[3] = {G.player.pos[0]*255, G.player.pos[1]*255, G.player.pos[2]*255};
+
+   // int32_t netpos[3] = {G.player.pos[0]*1000, G.player.pos[1]*1000, G.player.pos[2]*1000};
       // mg_send_websocket_frame(nc, WEBSOCKET_OP_BINARY, netpos, sizeof(int32_t)*3);
-    	int32_t bit = G.player.pos[1]*255.f;
-      // mg_send_websocket_frame(nc, WEBSOCKET_OP_BINARY, &bit, sizeof(int32_t));
-      mg_send(nc, &bit, sizeof(int32_t));
     
-      break;
+    int32_t bit = G.player.pos[1]*1000.f;
+   	
+   	#ifdef __EMSCRIPTEN__
+      mg_send(nc, &bit, sizeof(int32_t));
+    #else
+      mg_send_websocket_frame(nc, WEBSOCKET_OP_BINARY, &bit, sizeof(int32_t));
+    #endif
+    
+    	break;
     }
 
 
+#ifdef __EMSCRIPTEN__
+	case MG_EV_RECV:
+	io = &nc->recv_mbuf;
+
+		// printf("%s\n", io->buf);
+	    printf("%.*s\n", (int) io->len, io->buf);
+		mbuf_remove(io, io->len);
+	break;
+
+#else
     case MG_EV_WEBSOCKET_FRAME: { // 
       struct websocket_message *wm = (struct websocket_message *) ev_data;
       printf("%.*s\n", (int) wm->size, wm->data);
       break;
     }
+#endif
+
     case MG_EV_CLOSE: {
       if (s_is_connected) printf("-- Disconnected\n");
       s_done = 1;
@@ -1630,6 +1624,15 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data) {
 }
 
 void wschat(void ){
+  const char *chat_server_url = 
+		#ifdef __EMSCRIPTEN__ 
+		"tcp://" 
+		#else
+		"ws://"
+		#endif
+		// "192.168.0.220:1717";
+  		"xb17.duckdns.org:1717";
+  printf("%s\n", chat_server_url);
   // const char *chat_server_url = "ws://127.0.0.1:7777";
   // const char *chat_server_url = "ws://127.0.0.1:7777";
   // const char *chat_server_url = "ws://192.168.0.220:8000";
@@ -1638,8 +1641,8 @@ void wschat(void ){
   // const char *chat_server_url = "ws://xb17.duckdns.org:1717";
   // const char *chat_server_url = "tcp://xb17.duckdns.org:1717";
   // const char *chat_server_url = "tcp:127.0.0.1:1717";
-  const char *chat_server_url = "tcp://192.168.0.220:1717";
-  // const char *chat_server_url = "ws://181.167.117.180:1717";
+
+// const char *chat_server_url = "ws://181.167.117.180:1717";
   // const char *chat_server_url = "ws://192.168.0.25:8000";
 
   mg_mgr_init(&mgr, NULL);
@@ -1648,30 +1651,16 @@ void wschat(void ){
   // if (nc == NULL) {
     // fprintf(stderr, "Invalid address, trying non local server\n");
     // nc = mg_connect_ws(&mgr, ev_handler, chat_server_url, "ws_chat", NULL);
+  #ifdef __EMSCRIPTEN__
     nc = mg_connect(&mgr, chat_server_url, ev_handler);
+#else
+    nc = mg_connect_ws(&mgr, ev_handler, chat_server_url, NULL, NULL);
+#endif
   // }
   if (nc == NULL) {
     fprintf(stderr, "Invalid address\n");
     return ;
   }
-int timePrev=0, time=SDL_GetPerformanceCounter();
-float dt=0, ftime=0;
-  // while (!s_done) { 
-//   for (int i=0; i<300; i++) { 
-//   	dvsync(1);
-//   		timePrev=time;
-// 		time=SDL_GetPerformanceCounter();
-// 		dt = (float)((time - timePrev)*1000.0 / (double)SDL_GetPerformanceFrequency() )/1000.f;
-// 		ftime+=dt;
-// // DE_LOG("dt=%f",dt);
-//   	dclear_color(v4f_rand());
-//   	dclear(0);
-//   	ddisplay();
-//     mg_mgr_poll(&mgr, 16);
-//   }
-
-// mg_mgr_poll(&mgr, 16);
-  // mg_mgr_free(&mgr);
 
   return ;
 
